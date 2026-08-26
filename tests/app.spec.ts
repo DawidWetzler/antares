@@ -26,10 +26,8 @@ test('main window elements visibility', async () => {
       '#settingbar',
       '#footer'
    ];
-   setTimeout(async () => {
-      for (const selector of visibleSelectors)
-         expect(await appWindow.isVisible(selector), `expect ${selector} visible`).toBe(true);
-   }, 3000);
+   for (const selector of visibleSelectors)
+      await expect(appWindow.locator(selector), `expect ${selector} visible`).toBeVisible();
 });
 
 // test('SQLite connection', async () => {// FIXME: not working on GitHub Actions
