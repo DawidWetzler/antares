@@ -1,0 +1,29 @@
+# Test databases for `npm run test:integration`.
+# Ports are non-default on purpose: they must not clash with a local MySQL/Postgres.
+services:
+  mysql:
+    image: percona/percona-server:8.0.46
+    command: --secure-file-priv=/tmp
+    environment:
+      MYSQL_ROOT_PASSWORD: antares
+      MYSQL_DATABASE: antares_test
+    ports:
+      - '53306:3306'
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-uroot', '-pantares']
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: antares
+      POSTGRES_DB: antares_test
+    ports:
+      - '55432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d antares_test']
+      interval: 2s
+      timeout: 5s
+      retries: 30

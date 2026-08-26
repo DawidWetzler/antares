@@ -1,0 +1,11 @@
+{
+  // The tests are deliberately out of the root program: ts-loader type-checks every file it
+  // covers, and @types/node ~17 predates `node:test`, so keeping them in there breaks
+  // `npm run compile`. The node runners are transpile-only; this file is for editors.
+  "extends": "../tsconfig.json",
+  "include": ["./**/*"],
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "types": ["node"]
+  }
+}

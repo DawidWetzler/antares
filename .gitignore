@@ -8,5 +8,5 @@ thumbs.db
 NOTES.md
 *.txt
 *.heapsnapshot
-test-results/
+test-results*/
 playwright-report/
