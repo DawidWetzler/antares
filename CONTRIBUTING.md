@@ -46,6 +46,59 @@ In this folder is located the structure of Vue frontend application.
 
 The command to build Antares SQL locally is `npm run build`. 
 
+## Dependency policy
+
+`.npmrc` enforces four rules on every install. They are deliberate, so please do not
+work around them with flags:
+
+| Setting | Effect |
+| --- | --- |
+| `min-release-age=7` | A package version must be at least 7 days old to be installed. Blunts compromised-release attacks, which are usually yanked within hours. |
+| `save-exact=true` | `npm i <pkg>` writes an exact version, never a `^`/`~` range. |
+| `engine-strict=true` | The `engines` field in `package.json` is a hard error, not a warning. Node 24 and npm >= 11.17.0 are required. |
+| `strict-allow-scripts=true` | A dependency whose install scripts are not covered by `allowScripts` fails the install instead of silently executing. |
+
+### Install scripts
+
+`preinstall`, `install` and `postinstall` scripts run arbitrary code on your machine
+during `npm i`, which is the usual delivery route for a compromised package. The
+`allowScripts` field in `package.json` is the reviewed allowlist:
+
+- **listed with `true`** — reviewed and permitted.
+- **absent** — not reviewed. The install fails until someone reviews it.
+- **listed with `false`** — explicitly denied. The script is skipped and stays skipped.
+
+Entries are either version-pinned (`electron@30.0.8`, so a version bump needs a fresh
+review) or name-only (`ssh2`, allowing any version). Prefer pinned. Four packages
+currently have to be name-only because npm rejects a pinned entry for them even when
+the pin matches the only installed version — reproducible on npm 11.16.0, 11.17.0 and 11.19.0.
+
+Why each currently-approved package is trusted:
+
+| Package | Script | Why it is allowed |
+| --- | --- | --- |
+| `better-sqlite3` | `prebuild-install \|\| node-gyp rebuild` | Native SQLite driver. Must compile to work at all. |
+| `cpu-features` | `node-gyp rebuild` | Optional crypto accelerator for `ssh2`. Perf only. |
+| `electron` | `node install.js` | Downloads the Electron binary. Without it there is no app. |
+| `fsevents` | `node-gyp rebuild` | macOS file-watching for webpack. Optional, degrades to polling. |
+| `playwright` | `node install.js` | Downloads browsers for the e2e suite. |
+| `ssh2` | `node install.js` | Builds the optional `cpu-features` binding. Falls back to pure JS. |
+| `vue-demi` | `node scripts/postinstall.js` | Selects the Vue 2 or Vue 3 shim. |
+
+### Reviewing a new one
+
+When an install fails with `ESTRICTALLOWSCRIPTS`, read the script before approving it:
+
+```console
+npm approve-scripts --allow-scripts-pending   # list what is unreviewed, changes nothing
+cat node_modules/<pkg>/package.json           # read the actual script
+npm approve-scripts <pkg>                     # allow it, pinned to the installed version
+npm deny-scripts <pkg>                        # or refuse it outright
+```
+
+Both commands edit `package.json`, so the decision lands in the diff and gets reviewed
+like any other change. Never reach for `--dangerously-allow-all-scripts`.
+
 ## Conventions
 
 ### Electron

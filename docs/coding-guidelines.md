@@ -125,6 +125,11 @@ Never surface a raw error by `console.log` alone — use `useNotificationsStore(
 Avoid new dependencies. Prefer stdlib, an existing dep, or a small helper in
 `src/common/libs/`. A new runtime dep needs a reason that a few lines of code cannot cover.
 
+Installs are constrained by `.npmrc`: exact versions, a 7-day minimum release age,
+strict `engines`, and an `allowScripts` allowlist that blocks unreviewed install
+scripts. If `npm i` fails with `ESTRICTALLOWSCRIPTS`, review the script before
+approving it — see [Dependency policy](../CONTRIBUTING.md#dependency-policy).
+
 ## Commits
 
 Conventional Commits, single-scoped — `feat(MySQL): ...`, `fix: ...`, `refactor: ...`.
