@@ -225,13 +225,13 @@
     "dmg-license": "~1.0.11"
   },
   "allowScripts": {
+    "better-sqlite3@12.11.1": true,
     "electron@30.0.8": true,
     "fsevents@2.3.3": true,
     "cpu-features": true,
     "playwright": true,
     "ssh2": true,
-    "vue-demi": true,
-    "better-sqlite3": true
+    "vue-demi": true
   },
   "overrides": {
     "nan": "2.28.0"
