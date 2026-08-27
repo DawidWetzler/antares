@@ -185,6 +185,41 @@ export const captureDownload = async (
 
 export interface IconFixture { uid: string; name: string; svg: string }
 
+// The `connections` store is encrypted with a key the renderer keeps in localStorage, so it
+// can only be seeded from inside a running renderer, not from disk like settings.json.
+export const seedConnectionsStore = async (
+   appWindow: Page,
+   entries: Record<string, unknown>
+): Promise<void> =>
+   appWindow.evaluate(entries => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const Store = require('electron-store');
+      const store = new Store({ name: 'connections', encryptionKey: localStorage.getItem('key') });
+      for (const [key, value] of Object.entries(entries))
+         store.set(key, value);
+   }, entries);
+
+export const iconConnectionFixture = (iconUid: string, name: string): Record<string, unknown> => {
+   const connection = {
+      uid: `${iconUid}:conn`,
+      client: 'sqlite',
+      name,
+      databasePath: path.join(makeUserDataDir(), 'never-opened.db')
+   };
+
+   return {
+      connections: [connection],
+      connectionsOrder: [{
+         isFolder: false,
+         uid: connection.uid,
+         client: 'sqlite',
+         name,
+         icon: iconUid,
+         hasCustomIcon: true
+      }]
+   };
+};
+
 // The file format mirrors `ModalSettingsDataExport.vue:247-256`. Icon uids must not contain
 // `-`: `SettingBarConnections.vue:57` camelize()s the uid, which breaks the icon lookup.
 export const writeIconSettingsExport = (icons: IconFixture[], passkey: string): string => {

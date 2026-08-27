@@ -1,7 +1,7 @@
 <template>
    <SvgIcon
-      v-if="type === 'mdi'"
-      :type="type"
+      v-if="isMdi"
+      type="mdi"
       :path="iconPath"
       :size="size"
       :rotate="rotate"
@@ -50,13 +50,20 @@ const props = defineProps({
    }
 });
 
+const customIcon = computed(() => (props.type === 'custom' ? getIconByUid(props.iconName)?.base64 : undefined));
+
+// Also flips the branch: an mdi path in `v-html` paints nothing.
+const isMdi = computed(() => props.type !== 'custom' || !customIcon.value);
+
 const iconPath = computed(() => {
    if (props.type === 'mdi')
       return (Icons as {[k:string]: string})[props.iconName];
    else if (props.type === 'custom') {
-      const base64 = getIconByUid(props.iconName)?.base64;
+      if (!customIcon.value)
+         return Icons.mdiImageBrokenVariant;
+
       const svgString = Buffer
-         .from(base64, 'base64')
+         .from(customIcon.value, 'base64')
          .toString('utf-8');
 
       return DOMPurify.sanitize(svgString, {

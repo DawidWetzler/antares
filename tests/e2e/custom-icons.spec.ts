@@ -1,11 +1,14 @@
+import { mdiImageBrokenVariant } from '@mdi/js';
 import { expect, test } from '@playwright/test';
 
 import {
    customIconInSidebar,
+   iconConnectionFixture,
    IconFixture,
    importSettingsFile,
    launchApp,
    makeUserDataDir,
+   seedConnectionsStore,
    writeIconSettingsExport
 } from './helpers';
 
@@ -94,6 +97,41 @@ test.describe('custom icon persistence', () => {
          icon.locator('rect'),
          'expect the icon still painted after a restart — its record must be persisted under the key the store reads'
       ).toHaveCount(1);
+      await app.electronApp.close();
+   });
+});
+
+test.describe('a missing custom icon record', () => {
+   const userDataDir = makeUserDataDir();
+
+   test('does not stop the app from starting', async () => {
+      const iconUid = `I:E2EORPHAN${process.pid}`;
+      const name = `orphan icon ${process.pid}`;
+
+      // `removeIconHandler` (ModalConnectionAppearance.vue:221) reaches this state in-app.
+      let app = await launchApp(userDataDir);
+      await seedConnectionsStore(app.appWindow, iconConnectionFixture(iconUid, name));
+      await app.electronApp.close();
+
+      // `launchApp` waits for `#footer` — the shell the crash used to swallow.
+      app = await launchApp(userDataDir);
+
+      const entry = app.appWindow.locator('#settingbar .settingbar-element', { hasText: name });
+      await expect(entry, 'expect the sidebar entry to still be listed').toBeVisible();
+
+      await expect(
+         customIconInSidebar(app.appWindow, name).locator('svg path'),
+         'expect the broken-image placeholder glyph in place of the lost icon'
+      ).toHaveAttribute('d', mdiImageBrokenVariant);
+
+      await entry.click();
+      await expect(entry, 'expect the clicked connection selected').toHaveClass(/selected/);
+
+      expect(
+         app.rendererErrors.join('\n'),
+         'expect no renderer error from the missing icon record'
+      ).not.toMatch(/Buffer|base64/i);
+
       await app.electronApp.close();
    });
 });
