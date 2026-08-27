@@ -184,6 +184,7 @@ export const captureDownload = async (
 };
 
 export interface IconFixture { uid: string; name: string; svg: string }
+export interface CustomIconRecord { uid: string; base64: string }
 
 // The `connections` store is encrypted with a key the renderer keeps in localStorage, so it
 // can only be seeded from inside a running renderer, not from disk like settings.json.
@@ -198,6 +199,14 @@ export const seedConnectionsStore = async (
       for (const [key, value] of Object.entries(entries))
          store.set(key, value);
    }, entries);
+
+export const readConnectionsStore = async <T>(appWindow: Page, key: string): Promise<T> =>
+   appWindow.evaluate(key => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const Store = require('electron-store');
+      const store = new Store({ name: 'connections', encryptionKey: localStorage.getItem('key') });
+      return store.get(key) as unknown;
+   }, key) as Promise<T>;
 
 export const iconConnectionFixture = (iconUid: string, name: string): Record<string, unknown> => {
    const connection = {

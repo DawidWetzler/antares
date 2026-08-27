@@ -48,6 +48,17 @@ const persistentStore = new Store({
    clearInvalidConfig: true
 });
 
+// TODO: remove in future releases
+const importedIcons = persistentStore.get('customIcons') as CustomIcon[];
+if (importedIcons?.length) {
+   const icons = persistentStore.get('custom_icons', []) as CustomIcon[];
+   const uids = icons.map(i => i.uid);
+
+   // Set before delete: a crash in between must not be able to lose the icons being recovered.
+   persistentStore.set('custom_icons', [...icons, ...importedIcons.filter(i => !uids.includes(i.uid))]);
+   persistentStore.delete('customIcons');
+}
+
 export const useConnectionsStore = defineStore('connections', {
    state: () => ({
       connections: persistentStore.get('connections', []) as ConnectionParams[],

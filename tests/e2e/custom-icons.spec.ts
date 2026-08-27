@@ -3,11 +3,13 @@ import { expect, test } from '@playwright/test';
 
 import {
    customIconInSidebar,
+   CustomIconRecord,
    iconConnectionFixture,
    IconFixture,
    importSettingsFile,
    launchApp,
    makeUserDataDir,
+   readConnectionsStore,
    seedConnectionsStore,
    writeIconSettingsExport
 } from './helpers';
@@ -131,6 +133,43 @@ test.describe('a missing custom icon record', () => {
          app.rendererErrors.join('\n'),
          'expect no renderer error from the missing icon record'
       ).not.toMatch(/Buffer|base64/i);
+
+      await app.electronApp.close();
+   });
+});
+
+test.describe('custom icons imported before the key rename', () => {
+   const userDataDir = makeUserDataDir();
+
+   test('are migrated to the key the store reads', async () => {
+      const [orphaned, current] = iconFixtures();
+      const record = (fixture: IconFixture): CustomIconRecord =>
+         ({ uid: fixture.uid, base64: Buffer.from(fixture.svg, 'utf-8').toString('base64') });
+
+      // What a pre-3dc85625 import left: records under the dead `customIcons` key, plus one the UI wrote to the live key.
+      let app = await launchApp(userDataDir);
+      await seedConnectionsStore(app.appWindow, {
+         ...iconConnectionFixture(orphaned.uid, orphaned.name),
+         customIcons: [record(orphaned)],
+         custom_icons: [record(current)]
+      });
+      await app.electronApp.close();
+
+      app = await launchApp(userDataDir);
+      await expect(
+         customIconInSidebar(app.appWindow, orphaned.name).locator('rect'),
+         'expect the icon recovered from the dead key and painted'
+      ).toHaveCount(1);
+
+      expect(
+         (await readConnectionsStore<CustomIconRecord[]>(app.appWindow, 'custom_icons')).map(i => i.uid),
+         'expect the icon added through the UI kept alongside the recovered one'
+      ).toEqual([current.uid, orphaned.uid]);
+
+      expect(
+         await readConnectionsStore(app.appWindow, 'customIcons'),
+         'expect the dead key gone, so the migration cannot run a second time'
+      ).toBeUndefined();
 
       await app.electronApp.close();
    });
