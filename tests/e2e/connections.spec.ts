@@ -7,6 +7,8 @@ import {
    LaunchedApp,
    makeUserDataDir,
    pickFromBaseSelect,
+   readConnectionsStore,
+   seedConnectionsStore,
    seedSqliteFixture
 } from './helpers';
 
@@ -104,5 +106,47 @@ test.describe('connections', () => {
       await expect(toast, 'wrong password surfaces an error toast').toBeVisible();
       await expect(toast).toContainText(/access denied/i);
       await expect(appWindow.locator('#notifications-board .toast-success')).toHaveCount(0);
+   });
+});
+
+test.describe('deleting a connection', () => {
+   const userDataDir = makeUserDataDir();
+
+   test('drops it from the recently used list on disk', async () => {
+      const kept = `C:E2EKEPT${process.pid}`;
+      const doomed = `C:E2EDOOMED${process.pid}`;
+      const sidebarEntry = (app: LaunchedApp, name: string) =>
+         app.appWindow.locator('#settingbar .settingbar-element', { hasText: name });
+
+      let app = await launchApp(userDataDir);
+      const dbFile = await seedSqliteFixture(app.appWindow, 1);
+      await seedConnectionsStore(app.appWindow, {
+         connections: [kept, doomed].map(uid => ({ uid, client: 'sqlite', name: uid, databasePath: dbFile })),
+         connectionsOrder: [kept, doomed]
+            .map(uid => ({ isFolder: false, uid, client: 'sqlite', name: uid, icon: null })),
+         // `doomed` last, so it is the uid `getSelected` (workspaces.ts:105) picks after a restart.
+         lastConnections: [{ uid: kept, time: 1 }, { uid: doomed, time: 2 }]
+      });
+      await app.electronApp.close();
+
+      app = await launchApp(userDataDir);
+      // The `contextmenu` listener sits on the <li>, not on the .settingbar-element inside it.
+      await app.appWindow.locator('#settingbar li').filter({ hasText: doomed }).click({ button: 'right' });
+      await app.appWindow.locator('.context-element', { hasText: 'Delete' }).click();
+      await app.appWindow.locator('.modal.active .modal-footer .btn-primary').click();
+      await expect(sidebarEntry(app, doomed), 'expect the deleted connection out of the sidebar').toHaveCount(0);
+
+      expect(
+         await readConnectionsStore<{uid: string}[]>(app.appWindow, 'lastConnections'),
+         'expect the deleted connection dropped from the persisted recently used list'
+      ).toEqual([{ uid: kept, time: 1 }]);
+      await app.electronApp.close();
+
+      app = await launchApp(userDataDir);
+      await expect(
+         sidebarEntry(app, kept),
+         'expect the surviving connection selected, not the deleted uid the list still named'
+      ).toHaveClass(/selected/);
+      await app.electronApp.close();
    });
 });

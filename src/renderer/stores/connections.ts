@@ -152,6 +152,7 @@ export const useConnectionsStore = defineStore('connections', {
          this.removeFromFolders(connection.uid);
          this.connectionsOrder = (this.connectionsOrder as SidebarElement[]).filter(el => el.uid !== connection.uid);
          this.lastConnections = (this.lastConnections as SidebarElement[]).filter(el => el.uid !== connection.uid);
+         persistentStore.set('lastConnections', this.lastConnections);
 
          this.connections = (this.connections as SidebarElement[]).filter(el => el.uid !== connection.uid);
          persistentStore.set('connections', this.connections);
