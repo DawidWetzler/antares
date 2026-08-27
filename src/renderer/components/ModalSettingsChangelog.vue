@@ -14,8 +14,8 @@
    </div>
 </template>
 <script setup lang="ts">
+import { parseMarkdown } from 'common/libs/parseMarkdown';
 import { shell } from 'electron';
-import { marked } from 'marked';
 import { ref } from 'vue';
 
 import BaseIcon from '@/components/BaseIcon.vue';
@@ -45,18 +45,7 @@ const getChangelog = async () => {
          ? body.substr(0, cutOffset)
          : body;
 
-      const renderer = {
-         link (href: string, title: string, text: string) {
-            return `<a class="changelog-link" href="${href}" title="${title || ''}" target="_blank">${text}</a>`;
-         },
-         listitem (text: string) {
-            return `<li>${text.replace(/ *\([^)]*\) */g, '')}</li>`;
-         }
-      };
-
-      marked.use({ renderer });
-
-      changelog.value = marked(markdown);
+      changelog.value = parseMarkdown(markdown);
    }
    catch (err) {
       error.value = err.message;
