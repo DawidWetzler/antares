@@ -72,3 +72,28 @@ test.describe('custom connection icons', () => {
       await electronApp.close();
    });
 });
+
+test.describe('custom icon persistence', () => {
+   const userDataDir = makeUserDataDir();
+
+   test('an imported custom icon survives a restart', async () => {
+      const [fixture] = iconFixtures();
+
+      let app = await launchApp(userDataDir);
+      await importSettingsFile(app.appWindow, writeIconSettingsExport([fixture], PASSKEY), PASSKEY);
+      await expect(
+         customIconInSidebar(app.appWindow, fixture.name).locator('rect'),
+         'expect the imported icon painted in the session that imported it'
+      ).toHaveCount(1);
+      await app.electronApp.close();
+
+      app = await launchApp(userDataDir);
+      const icon = customIconInSidebar(app.appWindow, fixture.name);
+      await expect(icon, 'expect the sidebar entry that owns the icon').toBeVisible();
+      await expect(
+         icon.locator('rect'),
+         'expect the icon still painted after a restart — its record must be persisted under the key the store reads'
+      ).toHaveCount(1);
+      await app.electronApp.close();
+   });
+});

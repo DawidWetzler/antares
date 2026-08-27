@@ -293,7 +293,7 @@ export const useConnectionsStore = defineStore('connections', {
 
          persistentStore.set('connections', this.connections);
          persistentStore.set('connectionsOrder', this.connectionsOrder);
-         persistentStore.set('customIcons', this.customIcons);
+         persistentStore.set('custom_icons', this.customIcons);
       }
    }
 });
