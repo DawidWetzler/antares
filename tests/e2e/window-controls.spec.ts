@@ -178,3 +178,71 @@ test.describe('query editor context menu', () => {
          .toHaveText(['answer']);
    });
 });
+
+// The window buttons that would drive these are Linux-only, so the channels themselves are the
+// only place this behaviour can be pinned.
+test.describe('window IPC channels', () => {
+   let app: LaunchedApp;
+   let appWindow: Page;
+   let electronApp: ElectronApplication;
+
+   test.beforeAll(async () => {
+      app = await launchApp(makeUserDataDir());
+      ({ appWindow, electronApp } = app);
+      await spyOnMenus(electronApp);
+   });
+
+   test.afterAll(async () => {
+      await closeApp(app);
+   });
+
+   test.afterEach(async () => {
+      await forgetPoppedMenus(electronApp);
+   });
+
+   const invoke = (channel: string, ...args: unknown[]): Promise<unknown> =>
+      appWindow.evaluate(({ channel, args }) => {
+         // eslint-disable-next-line @typescript-eslint/no-var-requires
+         const { ipcRenderer } = require('electron');
+         return ipcRenderer.invoke(channel, ...args);
+      }, { channel, args });
+
+   test('minimize-window minimizes the window', async () => {
+      await invoke('minimize-window');
+
+      await expect
+         .poll(() => electronApp.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isMinimized()),
+            { message: 'expect the window minimized' })
+         .toBe(true);
+
+      await electronApp.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].restore());
+   });
+
+   test('is-window-maximized answers for the window that asked', async () => {
+      expect(await invoke('is-window-maximized')).toBe(false);
+
+      await electronApp.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].maximize());
+      expect(await invoke('is-window-maximized')).toBe(true);
+
+      await electronApp.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].unmaximize());
+   });
+
+   // The renderer fills in `role`, and a role is a command to Electron. Only the four editing
+   // roles may cross; `quit` would end the app straight from a crafted menu.
+   test('a context menu role outside the allowlist never reaches the menu', async () => {
+      // `show-context-menu` only settles once the menu is dismissed, so awaiting it here would
+      // wait for the popup this test is about to inspect.
+      await appWindow.evaluate(() => {
+         // eslint-disable-next-line @typescript-eslint/no-var-requires
+         const { ipcRenderer } = require('electron');
+         ipcRenderer.invoke('show-context-menu', [
+            { label: 'Copy', role: 'copy' },
+            { label: 'Quit', role: 'quit' },
+            { label: 'Devtools', role: 'toggleDevTools' }
+         ]);
+      });
+
+      await expect.poll(() => poppedMenuLabels(electronApp), { message: 'expect only the allowed entry' })
+         .toEqual([['Copy']]);
+   });
+});

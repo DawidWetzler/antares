@@ -130,7 +130,6 @@
     }
   },
   "dependencies": {
-    "@electron/remote": "~2.1.2",
     "@fabio286/ssh2-promise": "~1.0.4-b",
     "@faker-js/faker": "~6.1.2",
     "@jamescoyle/vue-icon": "~0.1.2",

@@ -274,9 +274,9 @@
 </template>
 
 <script setup lang="ts">
-import { getCurrentWindow, Menu } from '@electron/remote';
 import { Ace } from 'ace-builds';
 import { ConnectionParams } from 'common/interfaces/antares';
+import { MenuItemSpec } from 'common/interfaces/menu';
 import { uidGen } from 'common/libs/uidGen';
 import { ipcRenderer } from 'electron';
 import { storeToRefs } from 'pinia';
@@ -294,6 +294,7 @@ import WorkspaceTabQueryTable from '@/components/WorkspaceTabQueryTable.vue';
 import { useResultTables } from '@/composables/useResultTables';
 import Application from '@/ipc-api/Application';
 import Schema from '@/ipc-api/Schema';
+import Window from '@/ipc-api/Window';
 import { useApplicationStore } from '@/stores/application';
 import { useConsoleStore } from '@/stores/console';
 import { useHistoryStore } from '@/stores/history';
@@ -798,30 +799,30 @@ onMounted(() => {
    if (props.tab.filePath)
       loadFileContent(props.tab.filePath);
 
-   queryEditor.value.editor.container.addEventListener('contextmenu', (e) => {
-      const InputMenu = Menu.buildFromTemplate([
+   queryEditor.value.editor.container.addEventListener('contextmenu', async (e) => {
+      const menuItems: MenuItemSpec[] = [
          {
-            label: t('general.run'),
-            click: () => runQuery(query.value)
+            id: 'run',
+            label: t('general.run')
          },
          {
-            label: t('general.clear'),
-            click: () => clear()
+            id: 'clear',
+            label: t('general.clear')
          },
          {
             type: 'separator'
          },
          {
-            label: t('application.saveFile'),
-            click: () => saveFile()
+            id: 'save-file',
+            label: t('application.saveFile')
          },
          {
-            label: t('application.saveFileAs'),
-            click: () => saveFileAs()
+            id: 'save-file-as',
+            label: t('application.saveFileAs')
          },
          {
-            label: t('application.openFile'),
-            click: () => openFile()
+            id: 'open-file',
+            label: t('application.openFile')
          },
          {
             type: 'separator'
@@ -845,14 +846,30 @@ onMounted(() => {
             label: t('general.selectAll'),
             role: 'selectAll'
          }
-      ]);
+      ];
       e.preventDefault();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let node: any = e.target;
       while (node) {
          if (node.nodeName.match(/^(input|textarea)$/i) || node.isContentEditable) {
-            InputMenu.popup({ window: getCurrentWindow() });
+            switch (await Window.showContextMenu(menuItems)) {
+               case 'run':
+                  runQuery(query.value);
+                  break;
+               case 'clear':
+                  clear();
+                  break;
+               case 'save-file':
+                  saveFile();
+                  break;
+               case 'save-file-as':
+                  saveFileAs();
+                  break;
+               case 'open-file':
+                  openFile();
+                  break;
+            }
             break;
          }
          node = node.parentNode;

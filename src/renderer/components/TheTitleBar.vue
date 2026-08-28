@@ -46,13 +46,13 @@
 </template>
 
 <script setup lang="ts">
-import { getCurrentWindow } from '@electron/remote';
 import { ipcRenderer } from 'electron';
 import { storeToRefs } from 'pinia';
 import { computed, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import BaseIcon from '@/components/BaseIcon.vue';
+import Window from '@/ipc-api/Window';
 import { useConnectionsStore } from '@/stores/connections';
 import { useWorkspacesStore } from '@/stores/workspaces';
 
@@ -66,8 +66,7 @@ const { getSelected: selectedWorkspace } = storeToRefs(workspacesStore);
 const { getWorkspace } = workspacesStore;
 
 const appIcon = require('@/images/logo.svg');
-const w = ref(getCurrentWindow());
-const isMaximized = ref(getCurrentWindow().isMaximized());
+const isMaximized = ref(false);
 const isDevelopment = ref(process.env.NODE_ENV === 'development');
 const isMacOS = process.platform === 'darwin';
 const isWindows = process.platform === 'win32';
@@ -85,36 +84,34 @@ const windowTitle = computed(() => {
 });
 
 const openDevTools = () => {
-   w.value.webContents.openDevTools();
+   Window.openDevTools();
 };
 
 const reload = () => {
-   w.value.reload();
+   Window.reload();
 };
 
 const minimize = () => {
-   w.value.minimize();
+   Window.minimize();
 };
 
-const toggleFullScreen = () => {
-   if (isMaximized.value)
-      w.value.unmaximize();
-   else
-      w.value.maximize();
+const toggleFullScreen = async () => {
+   isMaximized.value = await Window.toggleMaximize();
 };
 
 const closeApp = () => {
    ipcRenderer.send('close-app');
 };
 
-const onResize = () => {
-   isMaximized.value = w.value.isMaximized();
+const onResize = async () => {
+   isMaximized.value = await Window.isMaximized();
 };
 
 watch(windowTitle, (val) => {
    ipcRenderer.send('change-window-title', val);
 });
 
+onResize();
 window.addEventListener('resize', onResize);
 
 onUnmounted(() => {

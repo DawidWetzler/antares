@@ -87,7 +87,6 @@
    </BaseContextMenu>
 </template>
 <script setup lang="ts">
-import { getCurrentWindow } from '@electron/remote';
 import * as moment from 'moment';
 import { storeToRefs } from 'pinia';
 import { highlight } from 'sql-highlight';
@@ -96,6 +95,7 @@ import { useI18n } from 'vue-i18n';
 
 import BaseContextMenu from '@/components/BaseContextMenu.vue';
 import BaseIcon from '@/components/BaseIcon.vue';
+import Window from '@/ipc-api/Window';
 import { copyText } from '@/libs/copyText';
 import { useConsoleStore } from '@/stores/console';
 
@@ -129,7 +129,6 @@ const isHover = ref(false);
 const isContext = ref(false);
 const contextContent: Ref<string> = ref(null);
 const contextEvent: Ref<MouseEvent> = ref(null);
-const w = ref(getCurrentWindow());
 const isDevelopment = ref(process.env.NODE_ENV === 'development');
 
 const resize = (e: MouseEvent) => {
@@ -162,11 +161,11 @@ const copyLog = () => {
 };
 
 const openDevTools = () => {
-   w.value.webContents.openDevTools();
+   Window.openDevTools();
 };
 
 const reload = () => {
-   w.value.reload();
+   Window.reload();
 };
 
 watch(workspaceQueryLogs, async () => {

@@ -12,6 +12,7 @@ import triggers from './triggers';
 import updates from './updates';
 import users from './users';
 import views from './views';
+import window from './window';
 
 const connections: Record<string, antares.Client> = {};
 
@@ -28,4 +29,5 @@ export default () => {
    users(connections);
    updates();
    application();
+   window();
 };

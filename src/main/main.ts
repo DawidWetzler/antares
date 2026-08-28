@@ -1,4 +1,3 @@
-import * as remoteMain from '@electron/remote/main';
 import { app, BrowserWindow, ipcMain, nativeImage, safeStorage } from 'electron';
 import * as log from 'electron-log/main';
 import * as Store from 'electron-store';
@@ -59,8 +58,6 @@ async function createMainWindow () {
    mainWindowState.manage(window);
    window.on('moved', saveWindowState);
 
-   remoteMain.enable(window.webContents);
-
    try {
       if (isDevelopment)
          await window.loadURL('http://localhost:9080');
@@ -80,8 +77,6 @@ async function createMainWindow () {
 
    return window;
 }
-
-require('@electron/remote/main').initialize();
 
 // Initialize ipcHandlers
 ipcHandlers();

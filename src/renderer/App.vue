@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { getCurrentWindow, Menu } from '@electron/remote';
+import { MenuItemSpec } from 'common/interfaces/menu';
 import { ipcRenderer } from 'electron';
 import { storeToRefs } from 'pinia';
 import { defineAsyncComponent, onMounted, Ref, ref } from 'vue';
@@ -40,6 +40,7 @@ import { useI18n } from 'vue-i18n';
 
 import ModalExportSchema from '@/components/ModalExportSchema.vue';
 import TheSettingBar from '@/components/TheSettingBar.vue';
+import Window from '@/ipc-api/Window';
 import { useApplicationStore } from '@/stores/application';
 import { useConnectionsStore } from '@/stores/connections';
 import { useSchemaExportStore } from '@/stores/schemaExport';
@@ -110,7 +111,7 @@ onMounted(() => {
    ipcRenderer.send('check-for-updates');
    checkVersionUpdate();
 
-   const InputMenu = Menu.buildFromTemplate([
+   const inputMenu: MenuItemSpec[] = [
       {
          label: t('general.cut'),
          role: 'cut'
@@ -130,7 +131,7 @@ onMounted(() => {
          label: t('general.selectAll'),
          role: 'selectAll'
       }
-   ]);
+   ];
 
    document.body.addEventListener('contextmenu', (e) => {
       e.preventDefault();
@@ -142,8 +143,7 @@ onMounted(() => {
       while (node) {
          if (node.nodeName.match(/^(input|textarea)$/i) || node.isContentEditable) {
             if (!node.parentNode.className.split(' ').includes('editor-query')) {
-               InputMenu.popup({ window: getCurrentWindow() });
-               console.log(node.parentNode.className);
+               Window.showContextMenu(inputMenu);
                break;
             }
          }
