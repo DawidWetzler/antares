@@ -46,7 +46,7 @@ test.describe('database', () => {
    test('the schema tree lists the seeded tables and collapses', async () => {
       const schema = appWindow.locator('.workspace-explorebar-database');
       await expect(schema.locator('summary .database-name span, summary span').first()).toHaveText('main');
-      await expect(schema.locator('.database-tables a.table-name span')).toHaveText(['empty_table', 'people']);
+      await expect(schema.locator('.database-tables a.table-name span')).toHaveText(['blobs', 'empty_table', 'people']);
 
       await expect(schema).toHaveAttribute('open', '');
       await schema.locator('summary').click();

@@ -116,6 +116,9 @@ export const seedSqliteFixture = async (appWindow: Page, rows = 60): Promise<str
       // but routes LONG_TEXT (SQLite's `TEXT`) through an Ace modal instead.
       'CREATE TABLE people (id INTEGER PRIMARY KEY, name TEXT NOT NULL, city VARCHAR(50))',
       'CREATE TABLE empty_table (id INTEGER PRIMARY KEY)',
+      // X'89504E47...' is the PNG magic number, so the grid has a mime to label the cell with.
+      'CREATE TABLE blobs (id INTEGER PRIMARY KEY, payload BLOB, seen_at DATETIME)',
+      'INSERT INTO blobs (id, payload, seen_at) VALUES (1, X\'89504E470D0A1A0A\', \'2021-02-03 04:05:06\')',
       `WITH RECURSIVE seq(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM seq WHERE n < ${rows})
        INSERT INTO people (id, name, city) SELECT n, 'person-' || n, 'city-' || (n % 7) FROM seq`
    ]);
