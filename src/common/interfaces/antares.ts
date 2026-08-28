@@ -1,15 +1,15 @@
-import SSHConfig from '@fabio286/ssh2-promise/lib/sshConfig';
-import * as mysql from 'mysql2/promise';
-import * as pg from 'pg';
-import { FirebirdSQLClient } from 'src/main/libs/clients/FirebirdSQLClient';
-import MysqlExporter from 'src/main/libs/exporters/sql/MysqlExporter';
-import PostgreSQLExporter from 'src/main/libs/exporters/sql/PostgreSQLExporter';
-import MySQLImporter from 'src/main/libs/importers/sql/MySQLlImporter';
-import PostgreSQLImporter from 'src/main/libs/importers/sql/PostgreSQLImporter';
+import type SSHConfig from '@fabio286/ssh2-promise/lib/sshConfig';
+import type * as mysql from 'mysql2/promise';
+import type * as pg from 'pg';
+import type { FirebirdSQLClient } from 'src/main/libs/clients/FirebirdSQLClient';
+import type MysqlExporter from 'src/main/libs/exporters/sql/MysqlExporter';
+import type PostgreSQLExporter from 'src/main/libs/exporters/sql/PostgreSQLExporter';
+import type MySQLImporter from 'src/main/libs/importers/sql/MySQLlImporter';
+import type PostgreSQLImporter from 'src/main/libs/importers/sql/PostgreSQLImporter';
 
-import { MySQLClient } from '../../main/libs/clients/MySQLClient';
-import { PostgreSQLClient } from '../../main/libs/clients/PostgreSQLClient';
-import { SQLiteClient } from '../../main/libs/clients/SQLiteClient';
+import type { MySQLClient } from '../../main/libs/clients/MySQLClient';
+import type { PostgreSQLClient } from '../../main/libs/clients/PostgreSQLClient';
+import type { SQLiteClient } from '../../main/libs/clients/SQLiteClient';
 
 export type Client = MySQLClient | PostgreSQLClient | SQLiteClient | FirebirdSQLClient
 export type ClientCode = 'mysql' | 'maria' | 'pg' | 'sqlite' | 'firebird'
