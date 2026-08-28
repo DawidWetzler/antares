@@ -13,6 +13,7 @@
     "target": "es2021",
     "allowJs": true,
     "module": "CommonJS",
+    "skipLibCheck": true,
     "noImplicitAny": true,
     "jsx": "preserve",
     "types": [
