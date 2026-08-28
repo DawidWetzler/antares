@@ -2,6 +2,7 @@ import { app, dialog, ipcMain, safeStorage } from 'electron';
 import * as Store from 'electron-store';
 import * as fs from 'fs';
 
+import { grantPath, isPathGranted } from '../libs/misc/grantedPaths';
 import { validateSender } from '../libs/misc/validateSender';
 import { ShortcutRegister } from '../libs/ShortcutRegister';
 
@@ -57,14 +58,18 @@ export default () => {
       }
    });
 
-   ipcMain.handle('show-open-dialog', (event, options) => {
+   ipcMain.handle('show-open-dialog', async (event, options) => {
       if (!validateSender(event.senderFrame)) return { status: 'error', response: 'Unauthorized process' };
-      return dialog.showOpenDialog(options);
+      const result = await dialog.showOpenDialog(options);
+      if (!result.canceled) result.filePaths.forEach(grantPath);
+      return result;
    });
 
-   ipcMain.handle('show-save-dialog', (event, options) => {
+   ipcMain.handle('show-save-dialog', async (event, options) => {
       if (!validateSender(event.senderFrame)) return { status: 'error', response: 'Unauthorized process' };
-      return dialog.showSaveDialog(options);
+      const result = await dialog.showSaveDialog(options);
+      if (!result.canceled) grantPath(result.filePath);
+      return result;
    });
 
    ipcMain.handle('get-download-dir-path', (event) => {
@@ -98,6 +103,7 @@ export default () => {
 
    ipcMain.handle('read-file', (event, { filePath, encoding }) => {
       if (!validateSender(event.senderFrame)) return { status: 'error', response: 'Unauthorized process' };
+      if (!isPathGranted(filePath)) return { status: 'error', response: 'File not authorized' };
       try {
          const content = fs.readFileSync(filePath, encoding);
          return content;
@@ -109,6 +115,7 @@ export default () => {
 
    ipcMain.handle('write-file', (event, filePath, content) => {
       if (!validateSender(event.senderFrame)) return { status: 'error', response: 'Unauthorized process' };
+      if (!isPathGranted(filePath)) return { status: 'error', response: 'File not authorized' };
       try {
          fs.writeFileSync(filePath, content, 'utf-8');
          return { status: 'success' };
