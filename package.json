@@ -145,6 +145,7 @@
     "cpu-features": "^0.0.10",
     "cross-env": "~7.0.2",
     "css-loader": "~6.5.0",
+    "dompurify": "3.4.14",
     "electron-log": "~5.0.1",
     "electron-store": "~8.1.0",
     "electron-updater": "~4.6.5",

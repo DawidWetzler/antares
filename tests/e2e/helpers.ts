@@ -4,6 +4,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { _electron as electron, ElectronApplication, Locator, Page } from 'playwright';
 
+import { encrypt } from '../../src/common/libs/encrypter';
+
 export interface LaunchedApp {
    electronApp: ElectronApplication;
    appWindow: Page;
@@ -180,3 +182,58 @@ export const captureDownload = async (
 
    return fs.readFileSync(savePath, 'utf-8');
 };
+
+export interface IconFixture { uid: string; name: string; svg: string }
+
+// The file format mirrors `ModalSettingsDataExport.vue:247-256`. Icon uids must not contain
+// `-`: `SettingBarConnections.vue:57` camelize()s the uid, which breaks the icon lookup.
+export const writeIconSettingsExport = (icons: IconFixture[], passkey: string): string => {
+   const connections = icons.map(icon => ({
+      uid: `${icon.uid}:conn`,
+      client: 'sqlite',
+      name: icon.name,
+      databasePath: path.join(makeUserDataDir(), 'never-opened.db')
+   }));
+
+   const payload = JSON.stringify({
+      connections,
+      connectionsOrder: connections.map((connection, i) => ({
+         isFolder: false,
+         uid: connection.uid,
+         client: 'sqlite',
+         name: connection.name,
+         icon: icons[i].uid,
+         hasCustomIcon: true
+      })),
+      customIcons: icons.map(icon => ({
+         uid: icon.uid,
+         base64: Buffer.from(icon.svg, 'utf-8').toString('base64')
+      }))
+   });
+
+   const file = path.join(makeUserDataDir(), `icons-${process.pid}.antares`);
+   fs.writeFileSync(file, Buffer.from(JSON.stringify(encrypt(payload, passkey)), 'utf-8').toString('hex'));
+   return file;
+};
+
+export const importSettingsFile = async (appWindow: Page, file: string, passkey: string): Promise<void> => {
+   await openSettingsModal(appWindow);
+   await appWindow.locator('#settings .tab-item', { hasText: 'Data' }).click();
+   await appWindow.locator('#settings button', { hasText: 'Import data' }).click();
+
+   // The import modal carries no id; the file input is what makes it unambiguous.
+   const importModal = appWindow
+      .locator('.modal.active .modal-container')
+      .filter({ has: appWindow.locator('input.file-uploader-input') });
+   await importModal.waitFor();
+   await importModal.locator('input.file-uploader-input').setInputFiles(file);
+   await importModal.locator('input[type="password"]').fill(passkey);
+   await importModal.locator('button', { hasText: /^Import$/ }).click();
+   await importModal.waitFor({ state: 'detached' });
+   await closeModal(appWindow, '#settings');
+};
+
+export const customIconInSidebar = (appWindow: Page, connectionName: string): Locator =>
+   appWindow
+      .locator('#settingbar .settingbar-element', { hasText: connectionName })
+      .locator('.settingbar-element-icon');

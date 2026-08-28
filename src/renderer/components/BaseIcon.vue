@@ -19,6 +19,8 @@
 <script setup lang="ts">
 import SvgIcon from '@jamescoyle/vue-icon';
 import * as Icons from '@mdi/js';
+// `export =` package: a default import compiles here but resolves to undefined.
+import * as DOMPurify from 'dompurify';
 import { computed, PropType } from 'vue';
 
 import { useConnectionsStore } from '@/stores/connections';
@@ -57,7 +59,12 @@ const iconPath = computed(() => {
          .from(base64, 'base64')
          .toString('utf-8');
 
-      return svgString;
+      return DOMPurify.sanitize(svgString, {
+         // SVG only: under the default profile an `<img>` is re-parented out of the wrapper as a live element.
+         USE_PROFILES: { svg: true, svgFilters: true },
+         // Permitted by the SVG profile: `<image href>` fetches on render, `<a href>` navigates the renderer.
+         FORBID_TAGS: ['image', 'a']
+      });
    }
    return null;
 });
