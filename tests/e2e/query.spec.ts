@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { Page } from 'playwright';
 
-import { connectSqliteWorkspace, launchApp, LaunchedApp, makeUserDataDir, typeInAceEditor } from './helpers';
+import { closeApp, connectSqliteWorkspace, launchApp, LaunchedApp, makeUserDataDir, typeInAceEditor } from './helpers';
 
 const activeTab = (appWindow: Page) => appWindow.locator('.workspace-query-tab:visible');
 const runQuery = async (appWindow: Page, sql: string) => {
@@ -25,7 +25,7 @@ test.describe('query tab', () => {
    // position (`.tab-item.tab-draggable`) rather than by name.
 
    test.afterEach(async () => {
-      await app.electronApp.close();
+      await closeApp(app);
    });
 
    test('runs a SELECT and shows the expected rows', async () => {

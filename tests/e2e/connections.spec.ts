@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import * as net from 'net';
 
 import {
+   closeApp,
    fillConnectionName,
    launchApp,
    LaunchedApp,
@@ -31,7 +32,7 @@ test.describe('connections', () => {
    });
 
    test.afterEach(async () => {
-      await app.electronApp.close();
+      await closeApp(app);
    });
 
    test('creates, tests, saves and connects a SQLite connection', async () => {
@@ -127,7 +128,7 @@ test.describe('deleting a connection', () => {
          // `doomed` last, so it is the uid `getSelected` (workspaces.ts:105) picks after a restart.
          lastConnections: [{ uid: kept, time: 1 }, { uid: doomed, time: 2 }]
       });
-      await app.electronApp.close();
+      await closeApp(app);
 
       app = await launchApp(userDataDir);
       // The `contextmenu` listener sits on the <li>, not on the .settingbar-element inside it.
@@ -140,13 +141,13 @@ test.describe('deleting a connection', () => {
          await readConnectionsStore<{uid: string}[]>(app.appWindow, 'lastConnections'),
          'expect the deleted connection dropped from the persisted recently used list'
       ).toEqual([{ uid: kept, time: 1 }]);
-      await app.electronApp.close();
+      await closeApp(app);
 
       app = await launchApp(userDataDir);
       await expect(
          sidebarEntry(app, kept),
          'expect the surviving connection selected, not the deleted uid the list still named'
       ).toHaveClass(/selected/);
-      await app.electronApp.close();
+      await closeApp(app);
    });
 });

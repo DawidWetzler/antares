@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { Page } from 'playwright';
 
 import {
+   closeApp,
    connectSqliteWorkspace,
    launchApp,
    LaunchedApp,
@@ -39,7 +40,7 @@ test.describe('database', () => {
    });
 
    test.afterEach(async () => {
-      await app.electronApp.close();
+      await closeApp(app);
    });
 
    test('the schema tree lists the seeded tables and collapses', async () => {

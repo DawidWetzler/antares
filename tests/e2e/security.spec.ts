@@ -1,6 +1,7 @@
 import { expect, Page, test } from '@playwright/test';
 
 import {
+   closeApp,
    customIconInSidebar,
    importSettingsFile,
    launchApp,
@@ -30,7 +31,8 @@ test.describe('custom connection icons', () => {
       const fixture = { uid: `I:E2EXSS${process.pid}`, name: 'xss icon', svg: MALICIOUS_SVG };
       const exportFile = writeIconSettingsExport([fixture], PASSKEY);
 
-      const { appWindow, electronApp } = await launchApp(makeUserDataDir());
+      const app = await launchApp(makeUserDataDir());
+      const { appWindow } = app;
 
       await importSettingsFile(appWindow, exportFile, PASSKEY);
 
@@ -49,6 +51,6 @@ test.describe('custom connection icons', () => {
       await appWindow.waitForTimeout(100);
       expect(await pwnedBy(appWindow), 'expect hovering the icon to run no event handler').toBeUndefined();
 
-      await electronApp.close();
+      await closeApp(app);
    });
 });

@@ -4,6 +4,7 @@ import { Page } from 'playwright';
 
 import {
    captureDownload,
+   closeApp,
    connectSqliteWorkspace,
    launchApp,
    LaunchedApp,
@@ -34,7 +35,7 @@ test.describe('export', () => {
    });
 
    test.afterEach(async () => {
-      await app.electronApp.close();
+      await closeApp(app);
    });
 
    test('exports the grid to CSV and the file matches the grid', async () => {

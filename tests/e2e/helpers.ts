@@ -2,7 +2,7 @@ import { expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { _electron as electron, ElectronApplication, Locator, Page } from 'playwright';
+import { _electron as electron, ConsoleMessage, ElectronApplication, Locator, Page } from 'playwright';
 
 import { encrypt } from '../../src/common/libs/encrypter';
 
@@ -12,6 +12,12 @@ export interface LaunchedApp {
    userDataDir: string;
    rendererErrors: string[];
 }
+
+// Opening Preferences mounts the changelog tab even when another tab is selected (v-show), and
+// it fetches release notes from GitHub, which 403s once the anonymous 60/hour cap is spent.
+// Only this host is dropped: a failed local resource still fails the test.
+const isReleaseNotesFetch = (msg: ConsoleMessage): boolean =>
+   msg.location().url.startsWith('https://api.github.com/');
 
 export const makeUserDataDir = (): string =>
    fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'antares-e2e-')));
@@ -34,7 +40,7 @@ export const launchApp = async (userDataDir: string, opts: { firstRun?: boolean 
    const appWindow = await electronApp.firstWindow();
 
    appWindow.on('console', msg => {
-      if (msg.type() === 'error') rendererErrors.push(msg.text());
+      if (msg.type() === 'error' && !isReleaseNotesFetch(msg)) rendererErrors.push(msg.text());
    });
    appWindow.on('pageerror', err => rendererErrors.push(err.message));
 

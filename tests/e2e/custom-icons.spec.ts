@@ -2,6 +2,7 @@ import { mdiImageBrokenVariant } from '@mdi/js';
 import { expect, test } from '@playwright/test';
 
 import {
+   closeApp,
    customIconInSidebar,
    CustomIconRecord,
    iconConnectionFixture,
@@ -34,7 +35,8 @@ const iconFixtures = (): IconFixture[] => [
 test.describe('custom connection icons', () => {
    test('an icon painted with currentColor inherits the sidebar colour', async () => {
       const fixtures = iconFixtures();
-      const { appWindow, electronApp } = await launchApp(makeUserDataDir());
+      const app = await launchApp(makeUserDataDir());
+      const { appWindow } = app;
 
       await importSettingsFile(appWindow, writeIconSettingsExport(fixtures, PASSKEY), PASSKEY);
 
@@ -54,12 +56,13 @@ test.describe('custom connection icons', () => {
       // Black on the dark settingbar is the regression being pinned, so a black cascade must not pass.
       expect(painted.cascade, 'expect the settingbar cascade not to be black').not.toBe('rgb(0, 0, 0)');
 
-      await electronApp.close();
+      await closeApp(app);
    });
 
    test('an icon with no xmlns still renders as a visible graphic', async () => {
       const fixtures = iconFixtures();
-      const { appWindow, electronApp } = await launchApp(makeUserDataDir());
+      const app = await launchApp(makeUserDataDir());
+      const { appWindow } = app;
 
       await importSettingsFile(appWindow, writeIconSettingsExport(fixtures, PASSKEY), PASSKEY);
 
@@ -74,7 +77,7 @@ test.describe('custom connection icons', () => {
       expect(box.width, 'expect the shape to occupy the 30/36 of the 36px icon it asks for').toBeGreaterThan(20);
       expect(box.height).toBeGreaterThan(20);
 
-      await electronApp.close();
+      await closeApp(app);
    });
 });
 
@@ -90,7 +93,7 @@ test.describe('custom icon persistence', () => {
          customIconInSidebar(app.appWindow, fixture.name).locator('rect'),
          'expect the imported icon painted in the session that imported it'
       ).toHaveCount(1);
-      await app.electronApp.close();
+      await closeApp(app);
 
       app = await launchApp(userDataDir);
       const icon = customIconInSidebar(app.appWindow, fixture.name);
@@ -99,7 +102,7 @@ test.describe('custom icon persistence', () => {
          icon.locator('rect'),
          'expect the icon still painted after a restart — its record must be persisted under the key the store reads'
       ).toHaveCount(1);
-      await app.electronApp.close();
+      await closeApp(app);
    });
 });
 
@@ -113,7 +116,7 @@ test.describe('a missing custom icon record', () => {
       // `removeIconHandler` (ModalConnectionAppearance.vue:221) reaches this state in-app.
       let app = await launchApp(userDataDir);
       await seedConnectionsStore(app.appWindow, iconConnectionFixture(iconUid, name));
-      await app.electronApp.close();
+      await closeApp(app);
 
       // `launchApp` waits for `#footer` — the shell the crash used to swallow.
       app = await launchApp(userDataDir);
@@ -134,7 +137,7 @@ test.describe('a missing custom icon record', () => {
          'expect no renderer error from the missing icon record'
       ).not.toMatch(/Buffer|base64/i);
 
-      await app.electronApp.close();
+      await closeApp(app);
    });
 });
 
@@ -153,7 +156,7 @@ test.describe('custom icons imported before the key rename', () => {
          customIcons: [record(orphaned)],
          custom_icons: [record(current)]
       });
-      await app.electronApp.close();
+      await closeApp(app);
 
       app = await launchApp(userDataDir);
       await expect(
@@ -171,6 +174,6 @@ test.describe('custom icons imported before the key rename', () => {
          'expect the dead key gone, so the migration cannot run a second time'
       ).toBeUndefined();
 
-      await app.electronApp.close();
+      await closeApp(app);
    });
 });
