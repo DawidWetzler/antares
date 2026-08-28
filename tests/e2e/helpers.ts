@@ -44,6 +44,13 @@ export const launchApp = async (userDataDir: string, opts: { firstRun?: boolean 
    return { electronApp, appWindow, userDataDir, rendererErrors };
 };
 
+// Closes before asserting: throwing first would leak the Electron process for the rest of the run.
+export const closeApp = async (app: LaunchedApp): Promise<void> => {
+   const errors = [...app.rendererErrors];
+   await app.electronApp.close();
+   expect(errors, `expect no renderer errors, got:\n${errors.join('\n')}`).toEqual([]);
+};
+
 export const seedSettings = (userDataDir: string, settings: Record<string, unknown>): void =>
    fs.writeFileSync(path.join(userDataDir, 'settings.json'), JSON.stringify(settings));
 

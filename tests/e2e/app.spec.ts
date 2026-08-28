@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { ElectronApplication, Page } from 'playwright';
 
 import {
+   closeApp,
    closeModal,
    launchApp,
    LaunchedApp,
@@ -23,7 +24,7 @@ test.describe('app lifecycle', () => {
    });
 
    test.afterAll(async () => {
-      await electronApp.close();
+      await closeApp(app);
    });
 
    test('launches unpackaged', async () => {
@@ -58,7 +59,7 @@ test.describe('first run', () => {
       const app = await launchApp(makeUserDataDir(), { firstRun: true });
       await expect(app.appWindow.locator('#settings')).toBeVisible();
       await expect(app.appWindow.locator('#settings .tab-item.active .tab-link')).toHaveText('Changelog');
-      await app.electronApp.close();
+      await closeApp(app);
    });
 });
 
@@ -82,7 +83,7 @@ test.describe('preferences persistence', () => {
       await pickFromBaseSelect(pageSizeSelect, '250');
       await expect(pageSizeSelect).toContainText('250');
 
-      await app.electronApp.close();
+      await closeApp(app);
 
       // --- on disk ---
       const persisted = readSettings(userDataDir);
@@ -102,7 +103,7 @@ test.describe('preferences persistence', () => {
       await app.appWindow.locator('#settings .tab-item', { hasText: 'Themes' }).click();
       await expect(app.appWindow.locator('#settings .theme-block.selected .h6')).toHaveText('Dark');
 
-      await app.electronApp.close();
+      await closeApp(app);
    });
 });
 
@@ -120,7 +121,7 @@ test.describe('window state restore', () => {
       await expect
          .poll(() => app.electronApp.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].getBounds()))
          .toEqual(target);
-      await app.electronApp.close();
+      await closeApp(app);
 
       expect(readWindowState(userDataDir)).toMatchObject(target);
 
@@ -128,6 +129,6 @@ test.describe('window state restore', () => {
       const restored = await app.electronApp.evaluate(({ BrowserWindow }) =>
          BrowserWindow.getAllWindows()[0].getBounds());
       expect(restored, 'window geometry restored by electron-window-state').toEqual(target);
-      await app.electronApp.close();
+      await closeApp(app);
    });
 });
