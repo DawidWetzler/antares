@@ -3,6 +3,8 @@ import * as log from 'electron-log/main';
 import * as Store from 'electron-store';
 import { autoUpdater } from 'electron-updater';
 
+import { validateSender } from '../libs/misc/validateSender';
+
 const persistentStore = new Store({
    name: 'settings',
    clearInvalidConfig: true,
@@ -19,6 +21,8 @@ autoUpdater.allowPrerelease = persistentStore.get('allow_prerelease', false) as 
 
 export default () => {
    ipcMain.on('check-for-updates', event => {
+      if (!validateSender(event.senderFrame)) return;
+
       mainWindow = event;
       if (process.windowsStore || (process.platform === 'linux' && !process.env.APPIMAGE))
          mainWindow.reply('no-auto-update');
@@ -32,7 +36,9 @@ export default () => {
       }
    });
 
-   ipcMain.on('restart-to-update', () => {
+   ipcMain.on('restart-to-update', event => {
+      if (!validateSender(event.senderFrame)) return;
+
       autoUpdater.quitAndInstall();
    });
 

@@ -17,6 +17,8 @@ export default () => {
    });
 
    ipcMain.on('set-key', (event, key) => {
+      if (!validateSender(event.senderFrame)) return;
+
       if (safeStorage.isEncryptionAvailable()) {
          const sessionStore = new Store({
             name: 'session',
@@ -28,7 +30,14 @@ export default () => {
       }
    });
 
+   // `sendSync`: the renderer blocks until `event.returnValue` is assigned, so a path out of
+   // here that leaves it unset stops the app from starting at all.
    ipcMain.on('get-key', (event) => {
+      if (!validateSender(event.senderFrame)) {
+         event.returnValue = false;
+         return;
+      }
+
       if (!safeStorage.isEncryptionAvailable()) {
          event.returnValue = false;
          return;

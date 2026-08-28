@@ -102,6 +102,8 @@ export default (connections: Record<string, antares.Client>) => {
    });
 
    ipcMain.handle('check-connection', async (event, uid) => {
+      if (!validateSender(event.senderFrame)) return false;
+
       return uid in connections;
    });
 
@@ -207,6 +209,8 @@ export default (connections: Record<string, antares.Client>) => {
    });
 
    ipcMain.on('abort-connection', (event, uid) => {
+      if (!validateSender(event.senderFrame)) return;
+
       isAborting[uid] = true;
    });
 
