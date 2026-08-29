@@ -10,6 +10,11 @@
   },
   "compilerOptions": {
     "target": "es2021",
+    "rootDir": "./",
+    "strict": false,
+    "moduleResolution": "node10",
+    "ignoreDeprecations": "6.0",
+    "noUncheckedSideEffectImports": false,
     "allowJs": true,
     "module": "CommonJS",
     "skipLibCheck": true,

@@ -13,7 +13,7 @@ export class MySQLClient extends BaseClient {
    private _schema?: string;
    private _runningConnections: Map<string, number>;
    private _connectionsToCommit: Map<string, mysql.Connection | mysql.PoolConnection>;
-   private _keepaliveTimer: NodeJS.Timer;
+   private _keepaliveTimer: NodeJS.Timeout;
    private _keepaliveMs: number;
    private sqlMode?: string[];
    _connection?: mysql.Connection | mysql.Pool;

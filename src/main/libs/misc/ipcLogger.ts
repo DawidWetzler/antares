@@ -3,8 +3,9 @@ export type LoggerLevel = 'query' | 'error'
 export const ipcLogger = ({ content, cUid, level }: {content: string; cUid: string; level: LoggerLevel}) => {
    if (level === 'error') {
       if (process.type !== undefined) {
-         const contents = require('electron').webContents.getAllWebContents();
-         let mainWindow = require('electron').webContents.fromId(1);
+         const { webContents } = require('electron') as typeof import('electron');
+         const contents = webContents.getAllWebContents();
+         let mainWindow = webContents.fromId(1);
          contents.forEach(content => {
             if (content.send && mainWindow === undefined) {
                mainWindow = content;
@@ -18,8 +19,9 @@ export const ipcLogger = ({ content, cUid, level }: {content: string; cUid: stri
       // Remove comments, newlines and multiple spaces
       const escapedSql = content.replace(/(\/\*(.|[\r\n])*?\*\/)|(--(.*|[\r\n]))/gm, '').replace(/\s\s+/g, ' ');
       if (process.type !== undefined) {
-         const contents = require('electron').webContents.getAllWebContents();
-         let mainWindow = require('electron').webContents.fromId(1);
+         const { webContents } = require('electron') as typeof import('electron');
+         const contents = webContents.getAllWebContents();
+         let mainWindow = webContents.fromId(1);
          contents.forEach(content => {
             if (content.send && mainWindow === undefined) {
                mainWindow = content;
