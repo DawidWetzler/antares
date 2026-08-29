@@ -7,18 +7,26 @@ import { closeApp, connectSqliteWorkspace, launchApp, LaunchedApp, makeUserDataD
 // which it leaves unwrapped.
 const SAMPLE_SQL = 'SELECT COUNT(id) AS total FROM people WHERE city = \'city-3\' AND id < 42';
 
-// Exact markup `highlight(sql, {html: true})` hands to `v-html` today (sql-highlight 4.4.0).
+// Exact markup `highlight(sql, {html: true})` hands to `v-html` today (sql-highlight 6.1.0).
 // The library emits `&#39;` for the quotes; the DOM serialises them back to `'` in innerHTML.
+// `sql-hl-identifier` is deliberately left unstyled, so those spans inherit the surrounding
+// colour and the console looks the same as it did before the class existed.
 const SAMPLE_HTML = [
    '<span class="sql-hl-keyword">SELECT</span> ',
    '<span class="sql-hl-function">COUNT</span>',
-   '<span class="sql-hl-bracket">(</span>id<span class="sql-hl-bracket">)</span> ',
-   '<span class="sql-hl-keyword">AS</span> total ',
-   '<span class="sql-hl-keyword">FROM</span> people ',
-   '<span class="sql-hl-keyword">WHERE</span> city ',
+   '<span class="sql-hl-bracket">(</span>',
+   '<span class="sql-hl-identifier">id</span>',
+   '<span class="sql-hl-bracket">)</span> ',
+   '<span class="sql-hl-keyword">AS</span> ',
+   '<span class="sql-hl-identifier">total</span> ',
+   '<span class="sql-hl-keyword">FROM</span> ',
+   '<span class="sql-hl-identifier">people</span> ',
+   '<span class="sql-hl-keyword">WHERE</span> ',
+   '<span class="sql-hl-identifier">city</span> ',
    '<span class="sql-hl-special">=</span> ',
    '<span class="sql-hl-string">\'city-3\'</span> ',
-   '<span class="sql-hl-keyword">AND</span> id ',
+   '<span class="sql-hl-keyword">AND</span> ',
+   '<span class="sql-hl-identifier">id</span> ',
    '<span class="sql-hl-special">&lt;</span> ',
    '<span class="sql-hl-number">42</span>'
 ].join('');
@@ -74,8 +82,8 @@ test.describe('debug console SQL highlighting', () => {
       await expect(log.locator('.sql-hl-special')).toHaveText(['=', '<']);
       await expect(log.locator('.sql-hl-number')).toHaveText(['42']);
 
-      // identifiers carry no class, so they must stay outside every span
-      await expect(log.locator('span')).toHaveCount(12);
+      await expect(log.locator('.sql-hl-identifier')).toHaveText(['id', 'total', 'people', 'city', 'id']);
+      await expect(log.locator('span')).toHaveCount(17);
 
       expect(await log.innerHTML()).toBe(SAMPLE_HTML);
    });
