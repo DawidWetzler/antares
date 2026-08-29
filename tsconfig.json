@@ -9,7 +9,6 @@
     "transpileOnly": true
   },
   "compilerOptions": {
-    "baseUrl": "./",
     "target": "es2021",
     "allowJs": true,
     "module": "CommonJS",
@@ -27,6 +26,7 @@
     "paths": {
       "common/*": ["./src/common/*"],
       "@/*": ["./src/renderer/*"],
+      "src/*": ["./src/*"],
     }
   }
 }
