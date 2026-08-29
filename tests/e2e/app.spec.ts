@@ -66,6 +66,37 @@ test.describe('first run', () => {
 test.describe('preferences persistence', () => {
    const userDataDir = makeUserDataDir();
 
+   test('the interface language switches and survives a restart', async () => {
+      let app = await launchApp(makeUserDataDir());
+      // BaseSelect opens from @focus, which needs the window to own OS focus first
+      await app.appWindow.bringToFront();
+
+      await openSettingsModal(app.appWindow);
+      const languageSelect = app.appWindow
+         .locator('#settings .form-group', { has: app.appWindow.locator('label', { hasText: 'Language' }) })
+         .locator('.select');
+      await expect(languageSelect).toContainText('English');
+
+      // pickFromBaseSelect reads back `.select__item-text span`, which this select does not
+      // render: its options are objects (option-label="name"), not plain values.
+      await languageSelect.click();
+      await languageSelect.locator('.select__search-input').fill('Italiano');
+      await languageSelect.locator('.select__item', { hasText: 'Italiano' }).first().click();
+
+      // the label the select sits next to is itself translated, so it proves the whole tree re-rendered
+      await expect(app.appWindow.locator('#settings .form-label', { hasText: 'Lingua' })).toBeVisible();
+
+      const userDataDir = app.userDataDir;
+      await closeApp(app);
+      expect(readSettings(userDataDir).locale, 'locale written to settings.json').toBe('it-IT');
+
+      app = await launchApp(userDataDir);
+      await app.appWindow.bringToFront();
+      await openSettingsModal(app.appWindow);
+      await expect(app.appWindow.locator('#settings .form-label', { hasText: 'Lingua' })).toBeVisible();
+      await closeApp(app);
+   });
+
    test('theme and page size survive a restart', async () => {
       // --- first run: change two settings through the UI ---
       let app = await launchApp(userDataDir);
