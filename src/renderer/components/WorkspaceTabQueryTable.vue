@@ -259,7 +259,7 @@ import { fakerCustom } from 'common/libs/fakerCustom';
 import { jsonToSqlInsert } from 'common/libs/sqlUtils';
 import { uidGen } from 'common/libs/uidGen';
 import * as json2php from 'json2php';
-import * as moment from 'moment';
+import moment from 'moment';
 import { storeToRefs } from 'pinia';
 import { Component, computed, nextTick, onMounted, onUnmounted, onUpdated, Prop, Ref, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';

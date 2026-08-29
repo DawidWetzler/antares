@@ -4,7 +4,7 @@ import { lineString, point, polygon } from '@turf/helpers';
 import { BIT, BLOB, DATE, DATETIME, FLOAT, IS_MULTI_SPATIAL, NUMBER, SPATIAL, TEXT_SEARCH } from 'common/fieldTypes';
 import * as antares from 'common/interfaces/antares';
 import { ClientCode } from 'common/interfaces/antares';
-import * as moment from 'moment';
+import moment from 'moment';
 
 import customizations from '../customizations';
 import { getArrayDepth } from './getArrayDepth';

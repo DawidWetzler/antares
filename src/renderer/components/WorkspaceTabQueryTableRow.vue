@@ -244,7 +244,7 @@ import { formatBytes } from 'common/libs/formatBytes';
 import hexToBinary, { HexChar } from 'common/libs/hexToBinary';
 import { langDetector } from 'common/libs/langDetector';
 import { mimeFromHex } from 'common/libs/mimeFromHex';
-import * as moment from 'moment';
+import moment from 'moment';
 import { computed, nextTick, onBeforeUnmount, Prop, Ref, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 

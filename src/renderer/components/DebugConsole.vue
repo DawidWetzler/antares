@@ -87,7 +87,7 @@
    </BaseContextMenu>
 </template>
 <script setup lang="ts">
-import * as moment from 'moment';
+import moment from 'moment';
 import { storeToRefs } from 'pinia';
 import { highlight } from 'sql-highlight';
 import { computed, nextTick, onMounted, Ref, ref, watch } from 'vue';

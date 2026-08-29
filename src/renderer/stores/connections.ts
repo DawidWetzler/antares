@@ -2,7 +2,7 @@ import { ConnectionParams } from 'common/interfaces/antares';
 import { uidGen } from 'common/libs/uidGen';
 import * as crypto from 'crypto';
 import { ipcRenderer } from 'electron';
-import * as Store from 'electron-store';
+import Store from 'electron-store';
 import { defineStore } from 'pinia';
 
 import { i18n } from '@/i18n';

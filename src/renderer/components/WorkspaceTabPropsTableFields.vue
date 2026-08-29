@@ -129,7 +129,7 @@ import { TableField, TableForeign, TableIndex } from 'common/interfaces/antares'
 import { storeToRefs } from 'pinia';
 import { Component, computed, onMounted, onUnmounted, onUpdated, Prop, Ref, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import * as Draggable from 'vuedraggable';
+import Draggable from 'vuedraggable';
 
 import TableContext from '@/components/WorkspaceTabPropsTableContext.vue';
 import TableRow from '@/components/WorkspaceTabPropsTableRow.vue';

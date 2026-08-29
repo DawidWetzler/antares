@@ -20,7 +20,7 @@
 import SvgIcon from '@jamescoyle/vue-icon';
 import * as Icons from '@mdi/js';
 // `export =` package: a default import compiles here but resolves to undefined.
-import * as DOMPurify from 'dompurify';
+import DOMPurify from 'dompurify';
 import { computed, PropType } from 'vue';
 
 import { useConnectionsStore } from '@/stores/connections';

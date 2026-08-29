@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, nativeImage, safeStorage } from 'electron';
-import * as log from 'electron-log/main';
-import * as Store from 'electron-store';
-import * as windowStateKeeper from 'electron-window-state';
+import log from 'electron-log/main';
+import Store from 'electron-store';
+import windowStateKeeper from 'electron-window-state';
 import * as path from 'path';
 
 import ipcHandlers from './ipc-handlers';

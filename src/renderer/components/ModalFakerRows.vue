@@ -104,7 +104,7 @@
 <script setup lang="ts">
 import { BIT, BLOB, DATE, DATETIME, FLOAT, LONG_TEXT, NUMBER, TEXT, TIME } from 'common/fieldTypes';
 import { TableField, TableForeign } from 'common/interfaces/antares';
-import * as moment from 'moment';
+import moment from 'moment';
 import { storeToRefs } from 'pinia';
 import { computed, onBeforeMount, onMounted, Prop, Ref, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';

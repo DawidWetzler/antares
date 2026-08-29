@@ -6,7 +6,7 @@ import { fakerCustom } from 'common/libs/fakerCustom';
 import { formatJsonForSqlWhere, sqlEscaper } from 'common/libs/sqlUtils';
 import { ipcMain } from 'electron';
 import * as fs from 'fs';
-import * as moment from 'moment';
+import moment from 'moment';
 
 import { validateSender } from '../libs/misc/validateSender';
 

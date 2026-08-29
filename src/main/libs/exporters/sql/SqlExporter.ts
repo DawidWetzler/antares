@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 
 import { MySQLClient } from '../../clients/MySQLClient';
 import { PostgreSQLClient } from '../../clients/PostgreSQLClient';

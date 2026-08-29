@@ -283,7 +283,7 @@ import { ClientCode, SchemaInfos } from 'common/interfaces/antares';
 import { Customizations } from 'common/interfaces/customizations';
 import { ExportOptions, ExportState } from 'common/interfaces/exporter';
 import { ipcRenderer, IpcRendererEvent } from 'electron';
-import * as moment from 'moment';
+import moment from 'moment';
 import { storeToRefs } from 'pinia';
 import { computed, onBeforeUnmount, Ref, ref } from 'vue';
 import { useI18n } from 'vue-i18n';

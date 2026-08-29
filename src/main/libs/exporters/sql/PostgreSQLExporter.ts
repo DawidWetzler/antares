@@ -3,7 +3,7 @@ import * as exporter from 'common/interfaces/exporter';
 import { valueToSqlString } from 'common/libs/sqlUtils';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import * as QueryStream from 'pg-query-stream';
+import QueryStream from 'pg-query-stream';
 
 import { PostgreSQLClient } from '../../clients/PostgreSQLClient';
 import { SqlExporter } from './SqlExporter';

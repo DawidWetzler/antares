@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import * as moment from 'moment';
+import moment from 'moment';
 
 export const fakerCustom = {
    seed: faker.seed,

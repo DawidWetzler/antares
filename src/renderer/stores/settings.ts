@@ -1,6 +1,6 @@
 import { ShortcutRecord } from 'common/shortcuts';
 import { ipcRenderer } from 'electron';
-import * as Store from 'electron-store';
+import Store from 'electron-store';
 import { defineStore } from 'pinia';
 
 import { AvailableLocale, i18n } from '@/i18n';

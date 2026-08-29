@@ -625,7 +625,7 @@ import { ipcRenderer } from 'electron';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, Prop, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import * as Draggable from 'vuedraggable';
+import Draggable from 'vuedraggable';
 
 import BaseIcon from '@/components/BaseIcon.vue';
 import DebugConsole from '@/components/DebugConsole.vue';

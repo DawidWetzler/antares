@@ -1,7 +1,7 @@
 import SSHConfig from '@fabio286/ssh2-promise/lib/sshConfig';
 import * as antares from 'common/interfaces/antares';
-import { ImportOptions } from 'common/interfaces/importer';
-import * as log from 'electron-log/main';
+import { ImportOptions, ImportState } from 'common/interfaces/importer';
+import log from 'electron-log/main';
 import * as mysql from 'mysql2';
 import * as pg from 'pg';
 import { parentPort } from 'worker_threads';
@@ -54,7 +54,7 @@ const importHandler = async (data: {
                return;
          }
 
-         importer.once('error', err => {
+         importer.once('error', (err: Error | string) => {
             log.error(err.toString());
             parentPort.postMessage({
                type: 'error',
@@ -73,14 +73,14 @@ const importHandler = async (data: {
             parentPort.postMessage({ type: 'cancel' });
          });
 
-         importer.on('progress', state => {
+         importer.on('progress', (state: ImportState) => {
             parentPort.postMessage({
                type: 'import-progress',
                payload: state
             });
          });
 
-         importer.on('query-error', state => {
+         importer.on('query-error', (state: { sql: string; message: string; sqlSnippet: string; time: number }) => {
             parentPort.postMessage({
                type: 'query-error',
                payload: state

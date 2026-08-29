@@ -152,7 +152,7 @@
 
 <script setup lang="ts">
 import { EventInfos } from 'common/interfaces/antares';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Ref, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 

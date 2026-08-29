@@ -1,4 +1,4 @@
-import * as Store from 'electron-store';
+import Store from 'electron-store';
 import * as path from 'path';
 
 const isWindows = process.platform === 'win32';

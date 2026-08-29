@@ -1,5 +1,6 @@
 import * as antares from 'common/interfaces/antares';
-import * as log from 'electron-log/main';
+import { ExportState } from 'common/interfaces/exporter';
+import log from 'electron-log/main';
 import * as fs from 'fs';
 import { parentPort } from 'worker_threads';
 
@@ -43,7 +44,7 @@ const exportHandler = async (data: any) => {
                return;
          }
 
-         exporter.once('error', err => {
+         exporter.once('error', (err: Error | string) => {
             log.error(err.toString());
             parentPort.postMessage({
                type: 'error',
@@ -63,7 +64,7 @@ const exportHandler = async (data: any) => {
             parentPort.postMessage({ type: 'cancel' });
          });
 
-         exporter.on('progress', state => {
+         exporter.on('progress', (state: ExportState) => {
             parentPort.postMessage({
                type: 'export-progress',
                payload: state

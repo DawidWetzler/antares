@@ -90,7 +90,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed, PropType, Ref, ref, watch } from 'vue';
-import * as Draggable from 'vuedraggable';
+import Draggable from 'vuedraggable';
 
 import BaseIcon from '@/components/BaseIcon.vue';
 import SettingBarConnectionsFolder from '@/components/SettingBarConnectionsFolder.vue';

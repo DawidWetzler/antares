@@ -13,7 +13,7 @@ import {
 } from 'common/interfaces/antares';
 import { Customizations } from 'common/interfaces/customizations';
 import { uidGen } from 'common/libs/uidGen';
-import * as Store from 'electron-store';
+import Store from 'electron-store';
 import { defineStore } from 'pinia';
 
 import Connection from '@/ipc-api/Connection';

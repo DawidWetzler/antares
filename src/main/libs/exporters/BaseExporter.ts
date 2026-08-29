@@ -1,5 +1,5 @@
 import * as exporter from 'common/interfaces/exporter';
-import * as EventEmitter from 'events';
+import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createGzip, Gzip } from 'zlib';
