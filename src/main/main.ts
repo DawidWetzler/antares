@@ -171,11 +171,16 @@ function createAppMenu () {
                { type: 'separator' },
                {
                   label: 'Check for Updates...',
-                  click: (_menuItem, win) => win.webContents.send('open-updates-preferences')
+                  click: (_menuItem, win) => {
+                     // the menu callback hands back a BaseWindow, which has no webContents
+                     if (win instanceof BrowserWindow) win.webContents.send('open-updates-preferences');
+                  }
                },
                {
                   label: 'Preferences',
-                  click: (_menuItem, win) => win.webContents.send('toggle-preferences'),
+                  click: (_menuItem, win) => {
+                     if (win instanceof BrowserWindow) win.webContents.send('toggle-preferences');
+                  },
                   accelerator: 'CmdOrCtrl+,'
                },
                { type: 'separator' },

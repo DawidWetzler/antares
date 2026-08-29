@@ -444,6 +444,7 @@
 import customizations from 'common/customizations';
 import { ConnectionParams } from 'common/interfaces/antares';
 import { uidGen } from 'common/libs/uidGen';
+import { webUtils } from 'electron';
 import { storeToRefs } from 'pinia';
 import { computed, Ref, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -612,11 +613,11 @@ const toggleSsh = () => {
    connection.value.ssh = !connection.value.ssh;
 };
 
-const pathSelection = (event: Event & {target: {files: {path: string}[]}}, name: keyof ConnectionParams) => {
+const pathSelection = (event: Event & {target: {files: File[]}}, name: keyof ConnectionParams) => {
    const { files } = event.target;
    if (!files.length) return;
 
-   (connection.value as unknown as Record<string, string>)[name] = files[0].path as string;
+   (connection.value as unknown as Record<string, string>)[name] = webUtils.getPathForFile(files[0]);
 };
 
 const pathClear = (name: keyof ConnectionParams) => {

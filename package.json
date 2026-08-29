@@ -183,8 +183,8 @@
     "chalk": "~4.1.2",
     "cross-env": "10.1.0",
     "css-loader": "7.1.4",
-    "electron": "~30.0.8",
-    "electron-builder": "~24.13.3",
+    "electron": "43.4.1",
+    "electron-builder": "26.15.3",
     "eslint": "10.9.0",
     "eslint-plugin-n": "18.3.0",
     "eslint-plugin-promise": "7.3.0",
@@ -221,14 +221,15 @@
     "dmg-license": "~1.0.11"
   },
   "allowScripts": {
-    "electron@30.0.8": true,
     "fsevents@2.3.3": true,
     "cpu-features": true,
     "playwright": true,
     "ssh2": true,
     "vue-demi": true,
     "fsevents@2.3.2": true,
-    "better-sqlite3@12.11.1": true
+    "better-sqlite3@12.11.1": true,
+    "electron@43.4.1": true,
+    "electron-winstaller@5.4.0": true
   },
   "overrides": {
     "nan": "2.28.0"
