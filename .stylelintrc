@@ -9,7 +9,13 @@
       "font-family-no-missing-generic-family-keyword": null,
       "selector-class-pattern": null,
       "no-invalid-position-at-import-rule": null,
-      "scss/no-global-function-names": null,
-      "declaration-property-value-keyword-no-deprecated": null
+      "declaration-property-value-keyword-no-deprecated": [
+         true,
+         {
+            "ignoreKeywords": [
+               "/overlay/"
+            ]
+         }
+      ]
    }
 }

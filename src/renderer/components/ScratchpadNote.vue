@@ -330,7 +330,7 @@ const highlightWord = (string: string) => {
  <style lang="scss">
  .tile-paragraph {
    white-space: initial;
-   word-break: break-word;
+   overflow-wrap: break-word;
    user-select: text;
 
     h1, h2, h3, h4, h5, h6, p, li {
