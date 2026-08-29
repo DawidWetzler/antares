@@ -178,12 +178,16 @@ if (!connectionsArr.value.length)
    height: calc(100vh - #{$excluding-size});
    display: flex;
    flex-direction: column;
+
    //  justify-content: space-between;
    align-items: center;
    padding: 0;
    z-index: 9;
 
    .settingbar-top-elements {
+      // Long-hand on purpose: the shorthand invalidates both axes where `overlay` is
+      // unsupported, while this keeps overflow-x working.
+      /* stylelint-disable-next-line declaration-block-no-redundant-longhand-properties */
       overflow-x: hidden;
       overflow-y: overlay;
       width: 100%;
@@ -252,7 +256,7 @@ if (!connectionsArr.value.length)
             height: 0;
             width: 3px;
             transition: height 0.2s;
-            background-color: rgba($color: #fff, $alpha: 0.8);
+            background-color: rgba($color: #fff, $alpha: 80%);
             border-radius: $border-radius;
          }
 

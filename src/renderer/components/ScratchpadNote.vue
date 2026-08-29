@@ -192,7 +192,7 @@ const highlightWord = (string: string) => {
    .tile-compress {
       position: absolute;
       right: 2px;
-      top: 0px;
+      top: 0;
       opacity: .7;
       z-index: 2;
    }
@@ -282,7 +282,7 @@ const highlightWord = (string: string) => {
       .tile-paragraph-overlay {
          background-image: linear-gradient(
             to bottom,
-            rgba(255,0,0,0) 70%,
+            rgb(255 0 0 / 0%) 70%,
             $body-bg-dark);
       }
 
@@ -290,7 +290,7 @@ const highlightWord = (string: string) => {
          .tile-paragraph-overlay {
             background-image: linear-gradient(
                to bottom,
-               rgba(255,0,0,0)70%,
+               rgb(255 0 0 / 0%)70%,
                #323232);
          }
       }
@@ -299,7 +299,7 @@ const highlightWord = (string: string) => {
          .tile-paragraph-overlay {
             background-image: linear-gradient(
                to bottom,
-               rgba(255,0,0,0) 70%,
+               rgb(255 0 0 / 0%) 70%,
                $bg-color-light-dark);
          }
       }
@@ -311,7 +311,7 @@ const highlightWord = (string: string) => {
       .tile-paragraph-overlay {
          background-image: linear-gradient(
             to bottom,
-            rgba(255,0,0,0) 70%,
+            rgb(255 0 0 / 0%) 70%,
             #FFFF);
       }
 
@@ -320,7 +320,7 @@ const highlightWord = (string: string) => {
          .tile-paragraph-overlay {
             background-image: linear-gradient(
                to bottom,
-               rgba(255,0,0,0) 70%,
+               rgb(255 0 0 / 0%) 70%,
                $bg-color-light-gray);
          }
       }

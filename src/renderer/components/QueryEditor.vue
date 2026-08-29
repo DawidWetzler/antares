@@ -409,7 +409,7 @@ defineExpose({ editor });
   &::before {
     content: '';
     position: absolute;
-    left: 0px;
+    left: 0;
     top: 8px;
     display: inline-block;
     width: 0;

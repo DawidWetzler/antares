@@ -1082,7 +1082,6 @@ onUnmounted(() => {
 }
 
 .column-resizable {
-
    &:hover,
    &:active {
       resize: horizontal;

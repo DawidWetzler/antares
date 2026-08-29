@@ -632,10 +632,7 @@ setTimeout(() => {
 
 <style lang="scss" scoped>
 .connection-panel {
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 0.5rem;
-  margin-top: 1.5rem;
+  margin: 1.5rem auto 0.5rem;
 
   .panel {
     min-width: 450px;

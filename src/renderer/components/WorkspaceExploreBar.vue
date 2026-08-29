@@ -566,10 +566,7 @@ const toggleSearchMethod = () => {
       display: flex;
       justify-content: space-between;
       z-index: 20;
-      margin-right: 5px;
-      margin-left: -4px;
-      margin-top: -3px;
-      margin-bottom: -0.5rem;
+      margin: -3px 5px -0.5rem -4px;
       height: 24px;
 
       .form-select.select-sm {
@@ -585,7 +582,7 @@ const toggleSearchMethod = () => {
       justify-content: space-between;
       font-size: 0.6rem;
       height: 28px;
-      margin: 0 0 5px 0;
+      margin: 0 0 5px;
       z-index: 10;
 
       .has-icon-right {

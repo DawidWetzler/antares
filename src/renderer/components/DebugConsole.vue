@@ -296,6 +296,7 @@ onMounted(() => {
          &-warn {
             color: orange;
          }
+
          &-error {
             color: red;
          }

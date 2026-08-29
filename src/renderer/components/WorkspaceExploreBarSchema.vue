@@ -799,6 +799,7 @@ defineExpose({ selectSchema, schemaAccordion });
     .accordion[open] .accordion-header {
        > .misc-icon {
           display: none;
+
           &.open-folder {
              display: initial;
           }

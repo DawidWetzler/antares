@@ -398,7 +398,7 @@ onBeforeUnmount(() => {
   outline: none;
 
   &:focus {
-    box-shadow: 0 0 3px 0.1rem rgba(var(--primary-color), 80%);
+    box-shadow: 0 0 3px 0.1rem rgb(var(--primary-color), 80%);
   }
 
   &:hover {

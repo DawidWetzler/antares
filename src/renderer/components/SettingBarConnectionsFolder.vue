@@ -217,6 +217,7 @@ emit('folder-sort');// To apply changes on component key change
 <style lang="scss" scoped>
 .folder {
    position: relative;
+
    &.selected-inside {
       opacity: 1!important;
 
@@ -231,7 +232,7 @@ emit('folder-sort');// To apply changes on component key change
       height: 0;
       width: 3px;
       transition: height 0.2s;
-      background-color: rgba($color: #fff, $alpha: 0.8);
+      background-color: rgba($color: #fff, $alpha: 80%);
       border-radius: $border-radius;
       position: absolute;
       left: 0;
@@ -255,7 +256,7 @@ emit('folder-sort');// To apply changes on component key change
       height: 0;
       width: 3px;
       transition: height 0.2s;
-      background-color: rgba($color: #fff, $alpha: 0.8);
+      background-color: rgba($color: #fff, $alpha: 80%);
       border-radius: $border-radius;
       position: absolute;
       left: -11px;
@@ -266,7 +267,7 @@ emit('folder-sort');// To apply changes on component key change
 
       &.badge::after {
          top: 10px;
-         right: 0px;
+         right: 0;
          position: absolute;
          display: none;
       }
@@ -280,7 +281,7 @@ emit('folder-sort');// To apply changes on component key change
       gap: 4px 6px;
       grid-template-columns: auto;
       grid-template-rows: auto;
-      background: rgba($color: #fff, $alpha: 0.1)!important;
+      background: rgba($color: #fff, $alpha: 10%)!important;
       transition: max-height .1s;
 
       .folder-element {
@@ -292,6 +293,7 @@ emit('folder-sort');// To apply changes on component key change
 
          &.ghost {
             background: $bg-color-light-dark;
+
             &.selected::before {
                height: 0;
                position: absolute;
@@ -312,7 +314,7 @@ emit('folder-sort');// To apply changes on component key change
             height: 0;
             width: 3px;
             transition: height 0.2s;
-            background-color: rgba($color: #fff, $alpha: 0.8);
+            background-color: rgba($color: #fff, $alpha: 80%);
             border-radius: $border-radius;
             position: absolute;
             left: -11px;
@@ -369,10 +371,7 @@ emit('folder-sort');// To apply changes on component key change
 
    .folder-overlay {
       position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      inset: 0;
       z-index: 10;
    }
 
@@ -419,7 +418,6 @@ emit('folder-sort');// To apply changes on component key change
 
    &:not(.opened){
       .folder-element {
-
          .folder-element-icon,
          .folder-element-icon svg {
             width: 21px;
@@ -432,7 +430,7 @@ emit('folder-sort');// To apply changes on component key change
 
 .ghost {
    border-radius: 15px!important;
-   background: rgba($color: #fff, $alpha: 0.1);
+   background: rgba($color: #fff, $alpha: 10%);
 
    &.folder-element {
       height: $settingbar-width;

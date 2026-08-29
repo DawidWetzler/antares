@@ -890,9 +890,8 @@ onMounted(() => {
 
     .tab-block {
       margin-top: 0;
-      flex-direction: row;
+      flex-flow: row nowrap;
       align-items: flex-start;
-      flex-wrap: nowrap;
       overflow: auto;
       margin-bottom: 0;
 

@@ -121,6 +121,7 @@ watch(isFocus, (val) => {
       text-overflow: ellipsis;
       caret-color: transparent;
    }
+
    .form-icon {
       right: 0.4rem;
    }

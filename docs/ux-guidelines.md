@@ -62,7 +62,7 @@ Button hierarchy: `btn-primary` (one per view, the confirm action) → `btn-dark
 
 ## Conventions
 
-- 3-space indent (ESLint), SCSS via stylelint-standard. Run `npm run lint`.
+- 3-space indent (ESLint), SCSS via stylelint-config-standard-scss. Run `npm run lint`.
 - Component naming: `Base*` = generic, `The*` = single instance, `Modal*`, `Workspace*`, `SettingBar*`.
 - Scoped styles in `.vue` files; only cross-cutting overrides go in `main.scss`.
 - Accessibility floor: focus trap in modals, visible focus ring (primary glow), keyboard-reachable actions, tooltips on icon-only controls.

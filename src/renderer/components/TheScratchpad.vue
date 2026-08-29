@@ -360,6 +360,7 @@ onBeforeUnmount(() => {
    margin-left: 580px;
    z-index: 9;
 }
+
 .archived-button {
    border-radius: 50%;
    width: 36px;

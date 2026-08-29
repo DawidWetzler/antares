@@ -638,10 +638,7 @@ localConnection.value = JSON.parse(JSON.stringify(props.connection));
 
 <style lang="scss" scoped>
 .connection-panel {
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 0.5rem;
-  margin-top: 1.5rem;
+  margin: 1.5rem auto 0.5rem;
 
   .panel {
     min-width: 450px;
@@ -650,14 +647,14 @@ localConnection.value = JSON.parse(JSON.stringify(props.connection));
     .panel-nav {
       .tab-block {
          background: transparent;
-         margin: 0.2rem 0 0.15rem 0;
+         margin: 0.2rem 0 0.15rem;
 
          .tab-item {
             background: transparent;
             flex: 1 0 0;
 
             > a {
-               padding: 8px 4px 6px 4px
+               padding: 8px 4px 6px
             }
          }
       }

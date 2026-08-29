@@ -429,7 +429,7 @@ export default defineComponent({
     border: none;
     background: transparent;
     outline: none;
-    color: currentColor;
+    color: currentcolor;
     max-width: 100%;
     width: 100%;
   }

@@ -116,7 +116,7 @@ const config = {
                      additionalData: `
                         $platform: ${process.platform};
                         @import "@/scss/_variables.scss";`,
-                     sassOptions: { quietDeps: true }
+                     sassOptions: { quietDeps: true, charset: false }
                   }
                }
             ]

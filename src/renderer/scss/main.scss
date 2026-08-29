@@ -1,8 +1,7 @@
-/* stylelint-disable */
 :root {
   --primary-color: #e36929;
   --primary-color-dark: color-mix(in srgb, var(--primary-color), #000 30%);
-  --primary-color-shadow: 0 0 0 0.1rem rgba(227, 105, 41, 0.2);
+  --primary-color-shadow: 0 0 0 0.1rem rgb(227 105 41 / 20%);
 }
 
 @import "~spectre.css/src/variables";
@@ -355,7 +354,7 @@ option:checked {
       border-color: var(--primary-color) !important;
       box-shadow: 0 0 0 0.1rem var(--primary-color-shadow) !important;
 
-      @include control-shadow();
+      @include control-shadow;
     }
   }
 }
@@ -384,7 +383,7 @@ option:checked {
 }
 
 .select__option--selected {
-  background: rgba(var(--primary-color), 0.25);
+  background: rgb(var(--primary-color), 0.25);
 }
 
 .select__option--highlight {
@@ -396,6 +395,7 @@ option:checked {
   &[type="file"] {
     overflow: hidden;
   }
+
   &:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 0.1rem var(--primary-color-shadow);
@@ -433,12 +433,12 @@ option:checked {
   }
 
   &:focus {
-    box-shadow: 0 0 3px 1px rgba(var(--primary-color), 90%);
+    box-shadow: 0 0 3px 1px rgb(var(--primary-color), 90%);
   }
 
   &.btn-success:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 3px 1px rgba(var(--primary-color), 90%);
+    box-shadow: 0 0 3px 1px rgb(var(--primary-color), 90%);
   }
 
   &.btn-primary {

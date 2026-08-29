@@ -182,19 +182,13 @@ watch(() => props.modelValue, (value) => {
   background-color: transparent;
   z-index: 10;
   position: absolute;
-  left: 20px;
-  top: 20px;
-  right: 20px;
-  bottom: 20px;
+  inset: 20px;
   transition: all .2s;
 
   &.folder-preview {
       border: 2px dotted;
       border-radius: 15px;
-      left: 5px;
-      top: 5px;
-      right: 5px;
-      bottom: 5px;
+      inset: 5px;
   }
 
    li {
@@ -213,7 +207,7 @@ watch(() => props.modelValue, (value) => {
 
    .settingbar-element {
       border-radius: 15px!important;
-      background: rgba($color: #fff, $alpha: 0.1);
+      background: rgba($color: #fff, $alpha: 10%);
 
       .settingbar-element-name {
          position: absolute;
