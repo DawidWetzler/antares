@@ -449,7 +449,7 @@
     box-shadow: 0 0 1px 0 #000;
 
     .settingbar-top-elements {
-      overflow: hidden overlay;
+      overflow: hidden auto;
       max-height: calc((100vh - 3.5rem) - #{$excluding-size});
     }
 

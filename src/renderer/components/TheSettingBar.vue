@@ -185,11 +185,7 @@ if (!connectionsArr.value.length)
    z-index: 9;
 
    .settingbar-top-elements {
-      // Long-hand on purpose: the shorthand invalidates both axes where `overlay` is
-      // unsupported, while this keeps overflow-x working.
-      /* stylelint-disable-next-line declaration-block-no-redundant-longhand-properties */
-      overflow-x: hidden;
-      overflow-y: overlay;
+      overflow: hidden auto;
       width: 100%;
 
       &::-webkit-scrollbar {

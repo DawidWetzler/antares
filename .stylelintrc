@@ -9,13 +9,6 @@
       "font-family-no-missing-generic-family-keyword": null,
       "selector-class-pattern": null,
       "no-invalid-position-at-import-rule": null,
-      "declaration-property-value-keyword-no-deprecated": [
-         true,
-         {
-            "ignoreKeywords": [
-               "/overlay/"
-            ]
-         }
-      ]
+      "declaration-property-value-keyword-no-deprecated": true
    }
 }

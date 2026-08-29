@@ -613,7 +613,7 @@ const toggleSearchMethod = () => {
     .workspace-explorebar-body {
       width: 100%;
       height: calc((100vh - 63px) - #{$excluding-size});
-      overflow: overlay;
+      overflow: auto;
       padding: 0 0.1rem;
     }
   }
