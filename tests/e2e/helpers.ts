@@ -28,14 +28,14 @@ export const appVersion = (): string =>
 
 // On a virgin userData dir the changelog modal's overlay eats every click
 // (`cachedVersion` mismatch, stores/application.ts:30), so `cached_version` is pre-stamped.
-export const launchApp = async (userDataDir: string, opts: { firstRun?: boolean } = {}): Promise<LaunchedApp> => {
+export const launchApp = async (userDataDir: string, opts: { firstRun?: boolean; entry?: string } = {}): Promise<LaunchedApp> => {
    const settingsFile = path.join(userDataDir, 'settings.json');
    if (!opts.firstRun && !fs.existsSync(settingsFile))
       seedSettings(userDataDir, { cached_version: appVersion(), notifications_timeout: 3600 });
 
    const rendererErrors: string[] = [];
    const electronApp = await electron.launch({
-      args: ['dist/main.js', `--user-data-dir=${userDataDir}`]
+      args: [opts.entry ?? 'dist/main.js', `--user-data-dir=${userDataDir}`]
    });
    const appWindow = await electronApp.firstWindow();
 
