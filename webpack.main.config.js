@@ -64,11 +64,6 @@ module.exports = { // Main
             loader: 'ts-loader'
          },
          {
-            test: /\.js$/,
-            exclude: /node_modules/,
-            loader: 'babel-loader'
-         },
-         {
             test: /\.(png|jpg|gif)$/,
             use: [{
                loader: 'file-loader'

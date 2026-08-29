@@ -36,11 +36,6 @@ const config = {
             loader: 'ts-loader'
          },
          {
-            test: /\.js$/,
-            use: 'babel-loader',
-            exclude: /node_modules/
-         },
-         {
             test: /\.node$/,
             use: 'node-loader'
          }
