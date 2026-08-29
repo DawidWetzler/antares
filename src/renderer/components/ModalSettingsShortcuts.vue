@@ -196,10 +196,9 @@
    </Teleport>
 </template>
 <script setup lang="ts">
-import { computed } from '@vue/reactivity';
 import { shortcutEvents, ShortcutRecord } from 'common/shortcuts';
 import { storeToRefs } from 'pinia';
-import { Ref, ref, watch } from 'vue';
+import { computed, Ref, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import ConfirmModal from '@/components/BaseConfirmModal.vue';

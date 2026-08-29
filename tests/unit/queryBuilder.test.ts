@@ -273,7 +273,6 @@ describe('query builder - state handling', () => {
    });
 
    test('getSQL is unimplemented on the abstract base', () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { BaseClient } = require('@/../main/libs/clients/BaseClient');
       class Bare extends BaseClient {}
       const bare = new Bare({ client: 'mysql', params: {}, logger: noop });

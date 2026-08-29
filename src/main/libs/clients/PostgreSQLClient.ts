@@ -98,7 +98,7 @@ export class PostgreSQLClient extends BaseClient {
       _float8: 'DOUBLE PRECISION',
       _char: '"CHAR"',
       _varchar: 'CHARACTER VARYING'
-   }
+   };
 
    _params: pg.ClientConfig & {schema: string; ssl?: ConnectionOptions; ssh?: SSHConfig; readonly: boolean};
 
@@ -300,7 +300,6 @@ export class PostgreSQLClient extends BaseClient {
    }
 
    async getStructure (schemas: Set<string>) {
-      /* eslint-disable camelcase */
       interface ShowTableResult {
          Db?: string;
          data_length: number;
@@ -318,7 +317,6 @@ export class PostgreSQLClient extends BaseClient {
          trigger_name: string;
          enabled: boolean;
       }
-      /* eslint-enable camelcase */
 
       const { rows: databases } = await this.raw<antares.QueryResult<{ database: string}>>('SELECT schema_name AS database FROM information_schema.schemata ORDER BY schema_name');
       const { rows: functions } = await this.raw('SELECT * FROM information_schema.routines WHERE routine_type = \'FUNCTION\'');
@@ -486,7 +484,6 @@ export class PostgreSQLClient extends BaseClient {
    }
 
    async getTableColumns ({ schema, table }: { schema: string; table: string }, arrayRemap = true) {
-      /* eslint-disable camelcase */
       interface TableColumnsResult {
          data_type: string;
          udt_name: string;
@@ -504,7 +501,6 @@ export class PostgreSQLClient extends BaseClient {
          collation_name: string;
          column_comment: string;
       }
-      /* eslint-enable camelcase */
 
       // Table columns
       const { rows } = await this.raw<antares.QueryResult<TableColumnsResult>>(`
@@ -563,7 +559,6 @@ export class PostgreSQLClient extends BaseClient {
    }
 
    async getTableOptions ({ schema, table }: { schema: string; table: string }) {
-      /* eslint-disable camelcase */
       interface TableOptionsResult {
          table_name: string;
          table_type: string;
@@ -573,7 +568,6 @@ export class PostgreSQLClient extends BaseClient {
          Collation: string;
          comment: string;
       }
-      /* eslint-enable camelcase */
 
       const { rows } = await this.raw<antares.QueryResult<TableOptionsResult>>(`
          SELECT *, 
@@ -602,13 +596,11 @@ export class PostgreSQLClient extends BaseClient {
    }
 
    async getTableIndexes ({ schema, table }: { schema: string; table: string }) {
-      /* eslint-disable camelcase */
       interface ShowIntexesResult {
          constraint_name: string;
          column_name: string;
          constraint_type: string;
       }
-      /* eslint-enable camelcase */
 
       // if (schema !== 'public')
       await this.use(schema);
@@ -656,7 +648,6 @@ export class PostgreSQLClient extends BaseClient {
    }
 
    async getTableDll ({ schema, table }: { schema: string; table: string }) {
-      /* eslint-disable camelcase */
       interface SequenceRecord {
          sequence_catalog: string;
          sequence_schema: string;
@@ -671,7 +662,6 @@ export class PostgreSQLClient extends BaseClient {
          increment: string;
          cycle_option: string;
       }
-      /* eslint-enable camelcase */
 
       let createSql = '';
       const sequences = [];
@@ -792,7 +782,6 @@ export class PostgreSQLClient extends BaseClient {
    }
 
    async getKeyUsage ({ schema, table }: { schema: string; table: string }) {
-      /* eslint-disable camelcase */
       interface KeyResult {
          table_schema: string;
          table_name: string;
@@ -806,7 +795,6 @@ export class PostgreSQLClient extends BaseClient {
          update_rule: string;
          delete_rule: string;
       }
-      /* eslint-enable camelcase */
 
       const { rows } = await this.raw<antares.QueryResult<KeyResult>>(`
          SELECT 
@@ -1351,7 +1339,6 @@ export class PostgreSQLClient extends BaseClient {
    }
 
    async getFunctionInformations ({ schema, func }: { schema: string; func: string }) {
-      /* eslint-disable camelcase */
       interface CreateFunctionResult {
          pg_get_functiondef: string;
       }
@@ -1361,7 +1348,6 @@ export class PostgreSQLClient extends BaseClient {
          parameter_name: string;
          data_type: string;
       }
-      /* eslint-enable camelcase */
 
       const sql = `SELECT pg_get_functiondef((SELECT oid FROM pg_proc WHERE proname = '${func}'));`;
       const results = await this.raw<antares.QueryResult<CreateFunctionResult>>(sql);

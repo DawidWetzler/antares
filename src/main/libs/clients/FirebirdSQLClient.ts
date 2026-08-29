@@ -31,7 +31,7 @@ export class FirebirdSQLClient extends BaseClient {
       580: 'BIGINT',
       32764: 'BOOLEAN', // >= 3.0
       32766: 'NULL' // >= 2.5
-   }
+   };
 
    constructor (args: antares.ClientParams) {
       super(args);
@@ -412,7 +412,6 @@ export class FirebirdSQLClient extends BaseClient {
    }
 
    async getKeyUsage ({ schema, table }: { schema: string; table: string }) {
-      /* eslint-disable camelcase */
       interface KeyResult {
          PKTABLE_NAME: string;
          PKCOLUMN_NAME: string;
@@ -424,7 +423,6 @@ export class FirebirdSQLClient extends BaseClient {
          PK_NAME: string;
          FK_NAME: string;
       }
-      /* eslint-enable camelcase */
 
       const { rows } = await this.raw<antares.QueryResult<KeyResult>>(`
          SELECT 

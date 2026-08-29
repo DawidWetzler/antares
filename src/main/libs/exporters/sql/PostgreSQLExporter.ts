@@ -237,7 +237,6 @@ SET row_security = off;\n\n\n`;
    }
 
    async getTriggers () {
-      /* eslint-disable camelcase */
       interface TriggersResult {
          event_object_table: string;
          table_name: string;
@@ -245,7 +244,7 @@ SET row_security = off;\n\n\n`;
          events: string[];
          event_manipulation: string;
       }
-      /* eslint-enable camelcase */
+
       let sqlString = '';
 
       // Trigger functions

@@ -6,7 +6,7 @@ import MySQLParser from '../../parsers/MySQLParser';
 import { BaseImporter } from '../BaseImporter';
 
 export default class MySQLImporter extends BaseImporter {
-   protected _client: mysql.Pool
+   protected _client: mysql.Pool;
 
    constructor (client: mysql.Pool, options: importer.ImportOptions) {
       super(options);

@@ -7,9 +7,8 @@ export const ipcLogger = ({ content, cUid, level }: {content: string; cUid: stri
          const contents = webContents.getAllWebContents();
          let mainWindow = webContents.fromId(1);
          contents.forEach(content => {
-            if (content.send && mainWindow === undefined) {
+            if (content.send && mainWindow === undefined)
                mainWindow = content;
-            }
          });
          mainWindow.send('non-blocking-exception', { cUid, message: content, date: new Date() });
       }
@@ -23,9 +22,8 @@ export const ipcLogger = ({ content, cUid, level }: {content: string; cUid: stri
          const contents = webContents.getAllWebContents();
          let mainWindow = webContents.fromId(1);
          contents.forEach(content => {
-            if (content.send && mainWindow === undefined) {
+            if (content.send && mainWindow === undefined)
                mainWindow = content;
-            }
          });
          mainWindow.send('query-log', { cUid, sql: escapedSql, date: new Date() });
       }

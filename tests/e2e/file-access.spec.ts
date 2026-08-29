@@ -14,14 +14,12 @@ const fixture = (name: string, content = 'SELECT 1;'): string => {
 
 const readFile = (appWindow: Page, filePath: string): Promise<unknown> =>
    appWindow.evaluate(target => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { ipcRenderer } = require('electron');
       return ipcRenderer.invoke('read-file', { filePath: target, encoding: 'utf-8' });
    }, filePath);
 
 const writeFile = (appWindow: Page, filePath: string, content: string): Promise<unknown> =>
    appWindow.evaluate(({ target, content }) => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { ipcRenderer } = require('electron');
       return ipcRenderer.invoke('write-file', target, content);
    }, { target: filePath, content });
@@ -40,14 +38,12 @@ const stubSaveDialog = (electronApp: ElectronApplication, filePath: string): Pro
 
 const pickInOpenDialog = (appWindow: Page): Promise<unknown> =>
    appWindow.evaluate(() => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { ipcRenderer } = require('electron');
       return ipcRenderer.invoke('show-open-dialog', { properties: ['openFile'] });
    });
 
 const nameInSaveDialog = (appWindow: Page): Promise<unknown> =>
    appWindow.evaluate(() => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { ipcRenderer } = require('electron');
       return ipcRenderer.invoke('show-save-dialog', {});
    });

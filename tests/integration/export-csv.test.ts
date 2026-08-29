@@ -39,7 +39,7 @@ const noop = () => { /* no browser here */ };
 };
 
 // Loaded after the stubs: the module itself is side-effect free, but keep the order honest.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+
 const { exportRows } = require('@/libs/exportRows') as typeof import('@/libs/exportRows');
 
 const CSV_OPTIONS = { header: true, fieldDelimiter: ';', linesTerminator: '\\n', stringDelimiter: 'double' };

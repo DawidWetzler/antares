@@ -202,7 +202,6 @@ test.describe('window IPC channels', () => {
 
    const invoke = (channel: string, ...args: unknown[]): Promise<unknown> =>
       appWindow.evaluate(({ channel, args }) => {
-         // eslint-disable-next-line @typescript-eslint/no-var-requires
          const { ipcRenderer } = require('electron');
          return ipcRenderer.invoke(channel, ...args);
       }, { channel, args });
@@ -233,7 +232,6 @@ test.describe('window IPC channels', () => {
       // `show-context-menu` only settles once the menu is dismissed, so awaiting it here would
       // wait for the popup this test is about to inspect.
       await appWindow.evaluate(() => {
-         // eslint-disable-next-line @typescript-eslint/no-var-requires
          const { ipcRenderer } = require('electron');
          ipcRenderer.invoke('show-context-menu', [
             { label: 'Copy', role: 'copy' },

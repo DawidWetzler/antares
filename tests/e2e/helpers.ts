@@ -23,7 +23,7 @@ export const makeUserDataDir = (): string =>
    fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'antares-e2e-')));
 
 export const appVersion = (): string =>
-   // eslint-disable-next-line @typescript-eslint/no-var-requires
+
    require(path.resolve(__dirname, '../../package.json')).version as string;
 
 // On a virgin userData dir the changelog modal's overlay eats every click
@@ -129,7 +129,6 @@ export const seedSqliteFixture = async (appWindow: Page, rows = 60): Promise<str
 // is the only place it loads — never the Playwright node process.
 export const sqliteExec = async <T>(appWindow: Page, file: string, statements: string[]): Promise<T> =>
    appWindow.evaluate(({ file, statements }) => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const Database = require('better-sqlite3');
       const db = new Database(file);
       let last: unknown = null;
@@ -209,7 +208,6 @@ export const seedConnectionsStore = async (
    entries: Record<string, unknown>
 ): Promise<void> =>
    appWindow.evaluate(entries => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const Store = require('electron-store');
       const store = new Store({ name: 'connections', encryptionKey: localStorage.getItem('key') });
       for (const [key, value] of Object.entries(entries))
@@ -218,7 +216,6 @@ export const seedConnectionsStore = async (
 
 export const readConnectionsStore = async <T>(appWindow: Page, key: string): Promise<T> =>
    appWindow.evaluate(key => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const Store = require('electron-store');
       const store = new Store({ name: 'connections', encryptionKey: localStorage.getItem('key') });
       return store.get(key) as unknown;

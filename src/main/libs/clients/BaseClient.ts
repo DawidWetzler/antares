@@ -11,7 +11,7 @@ import { ipcLogger, LoggerLevel } from '../misc/ipcLogger';
  */
 export abstract class BaseClient {
    _client: antares.ClientCode;
-   protected _cUid: string
+   protected _cUid: string;
    protected _params: mysql.ConnectionOptions | pg.ClientConfig | { databasePath: string; readonly: boolean};
    protected _poolSize: number;
    protected _ssh?: SSH2Promise;

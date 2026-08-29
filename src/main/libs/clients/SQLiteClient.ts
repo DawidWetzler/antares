@@ -49,7 +49,6 @@ export class SQLiteClient extends BaseClient {
    }
 
    async getStructure (schemas: Set<string>) {
-      /* eslint-disable camelcase */
       interface ShowTableResult {
          Db?: string;
          type: string;
@@ -60,7 +59,6 @@ export class SQLiteClient extends BaseClient {
       }
 
       type ShowTriggersResult = ShowTableResult
-      /* eslint-enable camelcase */
 
       const { rows: databases } = await this.raw<antares.QueryResult<{ name: string}>>('SELECT * FROM pragma_database_list');
 
@@ -151,7 +149,7 @@ export class SQLiteClient extends BaseClient {
          name: string;
          type: string;
          notnull: 0 | 1;
-         // eslint-disable-next-line camelcase
+
          dflt_value: string;
          pk: 0 | 1;
       }
@@ -202,7 +200,7 @@ export class SQLiteClient extends BaseClient {
       interface TableColumnsResult {
          type: string;
          name: string;
-         // eslint-disable-next-line camelcase
+
          tbl_name: string;
          rootpage:4;
          sql: string;
@@ -249,7 +247,6 @@ export class SQLiteClient extends BaseClient {
    }
 
    async getKeyUsage ({ schema, table }: { schema: string; table: string }) {
-      /* eslint-disable camelcase */
       interface KeyResult {
          from: string;
          id: number;
@@ -258,7 +255,6 @@ export class SQLiteClient extends BaseClient {
          on_update: string;
          on_delete: string;
       }
-      /* eslint-enable camelcase */
 
       const { rows } = await this.raw<antares.QueryResult<KeyResult>>(`SELECT * FROM "${schema}".pragma_foreign_key_list('${table}');`);
 

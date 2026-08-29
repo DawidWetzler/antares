@@ -51,7 +51,7 @@ export class MySQLClient extends BaseClient {
       253: 'VARCHAR',
       254: 'CHAR',
       255: 'GEOMETRY'
-   }
+   };
 
    constructor (args: antares.ClientParams) {
       super(args);
@@ -325,7 +325,6 @@ export class MySQLClient extends BaseClient {
    }
 
    async getStructure (schemas: Set<string>) {
-      /* eslint-disable camelcase */
       interface ShowTableResult {
          TABLE_SCHEMA?: string;
          TABLE_NAME: string;
@@ -352,7 +351,6 @@ export class MySQLClient extends BaseClient {
          collation_connection: string;
          'Database Collation': string;
       }
-      /* eslint-enable camelcase */
 
       const { rows: databases } = await this.raw<antares.QueryResult<{ Database: string}>>('SHOW DATABASES');
 
@@ -730,7 +728,6 @@ export class MySQLClient extends BaseClient {
    }
 
    async getTableOptions ({ schema, table }: { schema: string; table: string }) {
-      /* eslint-disable camelcase */
       interface TableOptionsResult {
          Name: string;
          Rows: string;
@@ -743,7 +740,6 @@ export class MySQLClient extends BaseClient {
          Collation: string;
          Comment: string;
       }
-      /* eslint-enable camelcase */
 
       const { rows } = await this.raw<antares.QueryResult<TableOptionsResult>>(`SHOW TABLE STATUS FROM \`${schema}\` WHERE Name = '${table}'`);
 
@@ -775,7 +771,6 @@ export class MySQLClient extends BaseClient {
    }
 
    async getTableIndexes ({ schema, table }: { schema: string; table: string }) {
-      /* eslint-disable camelcase */
       interface ShowIntexesResult {
          Non_unique: number;
          Column_name: string;
@@ -785,7 +780,6 @@ export class MySQLClient extends BaseClient {
          Comment: string;
          Index_comment: string;
       }
-      /* eslint-enable camelcase */
 
       const { rows } = await this.raw<antares.QueryResult<ShowIntexesResult>>(`SHOW INDEXES FROM \`${table}\` FROM \`${schema}\``);
 
@@ -1553,7 +1547,7 @@ export class MySQLClient extends BaseClient {
 
    async getVariables () {
       interface ShowVariablesResult {
-         // eslint-disable-next-line camelcase
+
          Variable_name: string;
          Value: string;
       }

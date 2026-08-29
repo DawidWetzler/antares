@@ -19,7 +19,6 @@ g.window = { URL: { createObjectURL: (b: Blob) => {
    blobs.push(b); return 'blob:stub';
 } } };
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { exportRows } = require('@/libs/exportRows');
 
 const exported = async (args: Record<string, any>) => {

@@ -16,9 +16,8 @@ export function matchesGrant (filePath: string, granted: Iterable<string>, opts:
    const wanted = normalize(filePath, opts);
    if (wanted === null) return false;
 
-   for (const grant of granted) {
+   for (const grant of granted)
       if (normalize(grant, opts) === wanted) return true;
-   }
 
    return false;
 }

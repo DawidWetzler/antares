@@ -100,7 +100,7 @@ export interface TableInfos {
 export type TableOptions = Partial<TableInfos>;
 
 export interface TableField {
-   // eslint-disable-next-line camelcase
+
    _antares_id?: string;
    name: string;
    type: string;
@@ -134,7 +134,7 @@ export interface TableField {
 }
 
 export interface TableIndex {
-   // eslint-disable-next-line camelcase
+
    _antares_id?: string;
    name: string;
    fields: string[];
@@ -148,7 +148,7 @@ export interface TableIndex {
 }
 
 export interface TableForeign {
-   // eslint-disable-next-line camelcase
+
    _antares_id?: string;
    constraintName: string;
    refSchema: string;
@@ -162,7 +162,7 @@ export interface TableForeign {
 }
 
 export interface TableCheck {
-   // eslint-disable-next-line camelcase
+
    _antares_id?: string;
    name: string;
    clause: string;
@@ -258,7 +258,7 @@ export interface AlterTriggerParams extends CreateTriggerParams {
 // Routines & Functions
 
 export interface FunctionParam {
-   // eslint-disable-next-line camelcase
+
    _antares_id: string;
    context: string;
    name: string;

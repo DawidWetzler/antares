@@ -6,8 +6,8 @@ import { BaseExporter } from '../BaseExporter';
 
 export class SqlExporter extends BaseExporter {
    protected _client: MySQLClient | PostgreSQLClient;
-   protected _commentChar = '--'
-   protected _postTablesSql = ''
+   protected _commentChar = '--';
+   protected _postTablesSql = '';
 
    get schemaName () {
       return this._options.schema;
