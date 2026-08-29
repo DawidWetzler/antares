@@ -5,12 +5,14 @@ import { Marked } from 'marked';
 const marked = new Marked({
    renderer: {
       html: () => '',
-      link (href: string, title: string, text: string) {
-         // `href` arrives verbatim and `[x](<...>)` accepts quotes, which would close the attribute.
-         return `<a class="changelog-link" href="${href.replace(/"/g, '&quot;')}" title="${title || ''}" target="_blank">${text}</a>`;
+      link ({ href, title, tokens }) {
+         // Both arrive verbatim: `[x](<...>)` accepts quotes in the href, and marked 15 moved
+         // title escaping out of the tokenizer into the renderer we are replacing here.
+         const text = this.parser.parseInline(tokens);
+         return `<a class="changelog-link" href="${href.replace(/"/g, '&quot;')}" title="${String(title || '').replace(/"/g, '&quot;')}" target="_blank">${text}</a>`;
       },
-      listitem (text: string) {
-         return `<li>${text.replace(/ *\([^)]*\) */g, '')}</li>`;
+      listitem ({ tokens }) {
+         return `<li>${this.parser.parse(tokens).replace(/ *\([^)]*\) */g, '')}</li>`;
       }
    }
 });

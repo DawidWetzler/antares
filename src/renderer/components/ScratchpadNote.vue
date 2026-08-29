@@ -147,11 +147,11 @@ const isBig = computed(() => noteHeight.value > 75);
 
 const parseMarkdown = (text: string) => {
    const renderer = {
-      listitem (text: string) {
-         return `<li>${text.replace(/ *\([^)]*\) */g, '')}</li>`;
+      listitem ({ tokens }) {
+         return `<li>${this.parser.parse(tokens).replace(/ *\([^)]*\) */g, '')}</li>`;
       },
-      link (href: string, title: string, text: string) {
-         return `<a>${text}</a>`;
+      link ({ tokens }) {
+         return `<a>${this.parser.parseInline(tokens)}</a>`;
       }
    };
 
