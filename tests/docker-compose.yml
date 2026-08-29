@@ -27,3 +27,24 @@ services:
       interval: 2s
       timeout: 5s
       retries: 30
+
+  # node-firebird 1.1.8 speaks neither Srp256 (the server default since Firebird 3) nor wire
+  # encryption, so a stock Firebird 4/5 rejects it outright. The two overrides below are what it
+  # takes to let the driver in at all -- they are a statement about the driver, not a convenience.
+  firebird:
+    image: firebirdsql/firebird:5
+    environment:
+      FIREBIRD_ROOT_PASSWORD: antares
+      FIREBIRD_DATABASE: antares_test.fdb
+      FIREBIRD_CONF_WireCrypt: Enabled
+      FIREBIRD_CONF_UserManager: Srp
+      FIREBIRD_CONF_AuthServer: 'Srp, Legacy_Auth'
+    ports:
+      - '53050:3050'
+    healthcheck:
+      # Single quotes inside the shell: with double quotes it expands `$database` and asks for a
+      # table called `rdb`.
+      test: ['CMD-SHELL', "echo 'SELECT 1 FROM rdb$$database;' | isql -q -u SYSDBA -p antares /var/lib/firebird/data/antares_test.fdb"]
+      interval: 2s
+      timeout: 5s
+      retries: 30

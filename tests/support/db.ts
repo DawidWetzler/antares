@@ -3,15 +3,17 @@
  *
  *   docker compose -f tests/docker-compose.yml up -d --wait
  *
- * MySQL  127.0.0.1:53306 root/antares
- * PG     127.0.0.1:55432 postgres/antares db antares_test
- * SQLite one throwaway file per test file
+ * MySQL    127.0.0.1:53306 root/antares
+ * PG       127.0.0.1:55432 postgres/antares db antares_test
+ * Firebird 127.0.0.1:53050 SYSDBA/antares, one database for the whole server
+ * SQLite   one throwaway file per test file
  */
 import * as fs from 'fs';
 import * as net from 'net';
 import * as os from 'os';
 import * as path from 'path';
 
+import { FirebirdSQLClient } from '../../src/main/libs/clients/FirebirdSQLClient';
 import { MySQLClient } from '../../src/main/libs/clients/MySQLClient';
 import { PostgreSQLClient } from '../../src/main/libs/clients/PostgreSQLClient';
 import { SQLiteClient } from '../../src/main/libs/clients/SQLiteClient';
@@ -24,12 +26,16 @@ export const MYSQL_HOST = '127.0.0.1';
 export const MYSQL_PORT = 53306;
 export const PG_HOST = '127.0.0.1';
 export const PG_PORT = 55432;
+export const FIREBIRD_HOST = '127.0.0.1';
+export const FIREBIRD_PORT = 53050;
+/** Firebird has no schemas, so every test file shares this database and namespaces its tables. */
+export const FIREBIRD_DATABASE = '/var/lib/firebird/data/antares_test.fdb';
 /** Nothing listens here, so connections are refused immediately instead of timing out. */
 export const DEAD_PORT = 1;
 /** What ipc-handlers/connection.ts uses for a normal (non single-connection) workspace. */
 export const APP_POOL_SIZE = 5;
 
-export type AnyClient = MySQLClient | PostgreSQLClient | SQLiteClient;
+export type AnyClient = FirebirdSQLClient | MySQLClient | PostgreSQLClient | SQLiteClient;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const noLogger = () => { /* the real one talks to Electron webContents */ };
@@ -46,6 +52,14 @@ export const pgClient = (extra: Record<string, any> = {}, poolSize = APP_POOL_SI
    client: 'pg',
    uid: `it-pg-${Math.random().toString(36).slice(2)}`,
    params: { host: PG_HOST, port: PG_PORT, user: 'postgres', password: 'antares', database: 'antares_test', schema: '', readonly: false, ...extra },
+   poolSize,
+   logger: noLogger
+} as never);
+
+export const firebirdClient = (extra: Record<string, any> = {}, poolSize = APP_POOL_SIZE) => new FirebirdSQLClient({
+   client: 'firebird',
+   uid: `it-firebird-${Math.random().toString(36).slice(2)}`,
+   params: { host: FIREBIRD_HOST, port: FIREBIRD_PORT, user: 'SYSDBA', password: 'antares', database: FIREBIRD_DATABASE, readonly: false, ...extra },
    poolSize,
    logger: noLogger
 } as never);
