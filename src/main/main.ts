@@ -16,6 +16,9 @@ const isMacOS = process.platform === 'darwin';
 const isLinux = process.platform === 'linux';
 const isWindows = process.platform === 'win32';
 const gotTheLock = app.requestSingleInstanceLock();
+// Set only by the e2e harness (tests/e2e/helpers.ts), so the Playwright run stops throwing
+// windows onto the screen. Absent in production, where nothing changes.
+const isHeadless = process.env.ANTARES_E2E_HEADLESS === '1';
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
@@ -32,7 +35,7 @@ async function createMainWindow () {
       y: mainWindowState.y,
       minWidth: 900,
       minHeight: 550,
-      show: !isWindows,
+      show: !isWindows && !isHeadless,
       title: 'Antares SQL',
       icon: nativeImage.createFromDataURL(icon.default),
       webPreferences: {
@@ -120,7 +123,7 @@ app.on('ready', async () => {
    mainWindow = await createMainWindow();
    createAppMenu();
 
-   if (isWindows)
+   if (isWindows && !isHeadless)
       mainWindow.show();
 
    // if (isDevelopment && !isWindows)

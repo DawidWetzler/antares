@@ -35,9 +35,15 @@ export const launchApp = async (userDataDir: string, opts: { firstRun?: boolean;
 
    const rendererErrors: string[] = [];
    const electronApp = await electron.launch({
-      args: [opts.entry ?? 'dist/main.js', `--user-data-dir=${userDataDir}`]
+      args: [opts.entry ?? 'dist/main.js', `--user-data-dir=${userDataDir}`],
+      // Electron has no headless mode; main.ts reads this and never shows the window, so a
+      // run does not take over the screen. The window still composites, so screenshots work.
+      env: { ...process.env, ANTARES_E2E_HEADLESS: '1' }
    });
    const appWindow = await electronApp.firstWindow();
+   // Guards the env var above: without it every spec silently takes over the screen again.
+   expect(await electronApp.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isVisible()),
+      'expect the e2e window to stay off screen').toBe(false);
 
    appWindow.on('console', msg => {
       if (msg.type() === 'error' && !isReleaseNotesFetch(msg)) rendererErrors.push(msg.text());
