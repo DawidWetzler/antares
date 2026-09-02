@@ -1,6 +1,7 @@
 // The client classes reach for electron-store (MySQLClient.getStructure reads the
 // show_table_size setting). Outside a real Electron main process that module throws,
-// so tests get an in-memory stand-in.
+// so tests get an in-memory stand-in. electron-store is ESM, so the stand-in is handed back
+// in the shape Node gives a require()d ESM module: the class under `default`, not bare.
 const Module = require('module');
 const settings = new Map();
 
@@ -26,7 +27,7 @@ FakeStore.settings = settings;
 
 const orig = Module._load;
 Module._load = function (request, ...rest) {
-   if (request === 'electron-store') return FakeStore;
+   if (request === 'electron-store') return { __esModule: true, default: FakeStore };
    return orig.call(this, request, ...rest);
 };
 

@@ -29,6 +29,9 @@
     "resolveJsonModule": true,
     "removeComments": true,
     "paths": {
+      // conf v15 (via electron-store) is exports-map-only with no root "types";
+      // moduleResolution node10 cannot see it, so point at the declarations directly.
+      "conf": ["./node_modules/conf/dist/source/index.d.ts"],
       "common/*": ["./src/common/*"],
       "@/*": ["./src/renderer/*"],
       "src/*": ["./src/*"],

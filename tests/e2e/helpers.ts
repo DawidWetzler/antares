@@ -214,7 +214,7 @@ export const seedConnectionsStore = async (
    entries: Record<string, unknown>
 ): Promise<void> =>
    appWindow.evaluate(entries => {
-      const Store = require('electron-store');
+      const Store = require('electron-store').default;
       const store = new Store({ name: 'connections', encryptionKey: localStorage.getItem('key') });
       for (const [key, value] of Object.entries(entries))
          store.set(key, value);
@@ -222,7 +222,7 @@ export const seedConnectionsStore = async (
 
 export const readConnectionsStore = async <T>(appWindow: Page, key: string): Promise<T> =>
    appWindow.evaluate(key => {
-      const Store = require('electron-store');
+      const Store = require('electron-store').default;
       const store = new Store({ name: 'connections', encryptionKey: localStorage.getItem('key') });
       return store.get(key) as unknown;
    }, key) as Promise<T>;

@@ -387,7 +387,8 @@ export class MySQLClient extends BaseClient {
       const triggersArr: ShowTriggersResult[] = [];
       let schemaSize = 0;
 
-      const Store = require('electron-store');
+      // electron-store is ESM: require() hands back the module namespace, not the class.
+      const Store = require('electron-store').default;
 
       Store.initRenderer();
       const settingsStore = new Store({ name: 'settings' });
