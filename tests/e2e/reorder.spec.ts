@@ -66,9 +66,14 @@ test.describe('drag reorder', () => {
       await expect(sidebarNames(appWindow)).toHaveText(names);
 
       const items = appWindow.locator('#settingbar .settingbar-top-elements li');
-      // Only the outer 20px of an element reorders: the inset `.drag-area` in the middle is
-      // the make-a-folder drop zone (SettingBarConnections.vue:37).
-      await dragOnto(appWindow, items.nth(2), items.nth(0), box => ({ x: box.x + box.width / 2, y: box.y + 4 }));
+      // The drop has to satisfy both axes at once. Vertically, the connections list sets
+      // `:swap-threshold="0.3"` (SettingBarConnections.vue:7), so SortableJS only reorders
+      // while the pointer is in the middle 30% of the target — the top edge reorders only
+      // through its inverted-swap fallback, which depends on the swaps already made, hence
+      // the coin flip a fixed `+4` gave. Horizontally, the middle is covered by the inset
+      // `.drag-area` (`inset: 20px`), the make-a-folder drop zone. So: released on the
+      // vertical centre, at the left edge outside that inset.
+      await dragOnto(appWindow, items.nth(2), items.nth(0), box => ({ x: box.x + 6, y: box.y + box.height / 2 }));
 
       const reordered = [names[2], names[0], names[1]];
       await expect(sidebarNames(appWindow), 'expect the dragged connection first in the sidebar')
@@ -91,7 +96,9 @@ test.describe('drag reorder', () => {
       const tabs = appWindow.locator('.workspace-tabs .tab-item.tab-draggable');
       await expect(tabs).toHaveText([/Query #1/, /Query #2/, /Query #3/]);
 
-      await dragOnto(appWindow, tabs.nth(0), tabs.nth(2), box => ({ x: box.x + box.width - 4, y: box.y + box.height / 2 }));
+      // The tab strip leaves `swapThreshold` at its default 1, so the whole tab reorders and
+      // the centre is as good as the edge — and it cannot fall off the element.
+      await dragOnto(appWindow, tabs.nth(0), tabs.nth(2), box => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 }));
 
       await expect(tabs, 'expect the dragged tab last').toHaveText([/Query #2/, /Query #3/, /Query #1/]);
    });
