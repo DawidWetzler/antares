@@ -12,8 +12,7 @@
     "target": "es2021",
     "rootDir": "./",
     "strict": false,
-    "moduleResolution": "node10",
-    "ignoreDeprecations": "6.0",
+    "moduleResolution": "bundler",
     "noUncheckedSideEffectImports": false,
     "allowJs": true,
     "module": "CommonJS",
@@ -29,9 +28,9 @@
     "resolveJsonModule": true,
     "removeComments": true,
     "paths": {
-      // conf v15 (via electron-store) is exports-map-only with no root "types";
-      // moduleResolution node10 cannot see it, so point at the declarations directly.
-      "conf": ["./node_modules/conf/dist/source/index.d.ts"],
+      // faker 6's exports map has no "types" condition, and its own "types" field points at a
+      // root index.d.ts that does not exist. Goes away when faker is upgraded.
+      "@faker-js/faker": ["./node_modules/@faker-js/faker/dist/types/index.d.ts"],
       "common/*": ["./src/common/*"],
       "@/*": ["./src/renderer/*"],
       "src/*": ["./src/*"],
