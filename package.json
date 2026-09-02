@@ -154,7 +154,7 @@
     "marked": "18.0.10",
     "moment": "~2.30.1",
     "mysql2": "~3.9.7",
-    "node-firebird": "~1.1.8",
+    "node-firebird": "2.15.0",
     "pg": "~8.11.5",
     "pg-query-stream": "~4.2.3",
     "pgsql-ast-parser": "7.2.1",

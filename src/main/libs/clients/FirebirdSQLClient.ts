@@ -1192,7 +1192,6 @@ export class FirebirdSQLClient extends BaseClient {
                                  (connection as firebird.Database).detach();
                               }
 
-                              this.destroy();
                               reject(err);
                            }
 
@@ -1206,7 +1205,6 @@ export class FirebirdSQLClient extends BaseClient {
                                  (connection as firebird.Database).detach();
                               }
 
-                              this.destroy();
                               reject(err);
                            }
                         }
@@ -1215,7 +1213,6 @@ export class FirebirdSQLClient extends BaseClient {
                }
                catch (err) {
                   reject(err);
-                  this.destroy();
                   if (args.autocommit)
                      (connection as firebird.Database).detach();
                }
