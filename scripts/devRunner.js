@@ -2,13 +2,13 @@ process.env.NODE_ENV = 'development';
 // process.env.ELECTRON_ENABLE_LOGGING = true
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = false;
 
-const chalk = require('chalk');
 const electron = require('electron');
 const webpack = require('webpack');
 const WebpackDevServer = require('webpack-dev-server');
 const kill = require('tree-kill');
 
 const path = require('path');
+const { styleText } = require('util');
 const { spawn } = require('child_process');
 
 const mainConfig = require('../webpack.main.config');
@@ -39,7 +39,7 @@ async function killElectron (pid) {
 }
 
 async function restartElectron () {
-   console.log(chalk.gray('\nStarting electron...'));
+   console.log(styleText('gray', '\nStarting electron...'));
 
    const { pid } = electronProcess || {};
    await killElectron(pid);
@@ -52,11 +52,11 @@ async function restartElectron () {
    ]);
 
    electronProcess.stdout.on('data', data => {
-      console.log(chalk.white(data.toString()));
+      console.log(styleText('white', data.toString()));
    });
 
    electronProcess.stderr.on('data', data => {
-      console.error(chalk.red(data.toString()));
+      console.error(styleText('red', data.toString()));
    });
 
    electronProcess.on('exit', () => {
@@ -68,12 +68,12 @@ function startWorkers () {
    const { name } = compiler;
 
    compiler.hooks.afterEmit.tap('afterEmit', () => {
-      console.log(chalk.gray(`\nCompiled ${name} script!`));
-      console.log(chalk.gray(`\nWatching file changes for ${name} script...`));
+      console.log(styleText('gray', `\nCompiled ${name} script!`));
+      console.log(styleText('gray', `\nWatching file changes for ${name} script...`));
    });
 
    compiler.watch({ aggregateTimeout: 500 }, err => {
-      if (err) console.error(chalk.red(err));
+      if (err) console.error(styleText('red', String(err)));
    });
 }
 
@@ -82,7 +82,7 @@ function startMain () {
    const { name } = compiler;
 
    compiler.hooks.afterEmit.tap('afterEmit', async () => {
-      console.log(chalk.gray(`\nCompiled ${name} script!`));
+      console.log(styleText('gray', `\nCompiled ${name} script!`));
 
       manualRestart = true;
       await restartElectron();
@@ -92,11 +92,11 @@ function startMain () {
          manualRestart = false;
       }, 2500);
 
-      console.log(chalk.gray(`\nWatching file changes for ${name} script...`));
+      console.log(styleText('gray', `\nWatching file changes for ${name} script...`));
    });
 
    compiler.watch({ aggregateTimeout: 500 }, err => {
-      if (err) console.error(chalk.red(err));
+      if (err) console.error(styleText('red', String(err)));
    });
 }
 
@@ -105,8 +105,8 @@ function startRenderer (callback) {
    const { name } = compiler;
 
    compiler.hooks.afterEmit.tap('afterEmit', () => {
-      console.log(chalk.gray(`\nCompiled ${name} script!`));
-      console.log(chalk.gray(`\nWatching file changes for ${name} script...`));
+      console.log(styleText('gray', `\nCompiled ${name} script!`));
+      console.log(styleText('gray', `\nWatching file changes for ${name} script...`));
    });
 
    const server = new WebpackDevServer({
@@ -119,7 +119,7 @@ function startRenderer (callback) {
    }, compiler);
 
    server.startCallback(err => {
-      if (err) console.error(chalk.red(err));
+      if (err) console.error(styleText('red', String(err)));
 
       callback();
    });

@@ -178,7 +178,6 @@
     "@typescript-eslint/eslint-plugin": "8.68.0",
     "@typescript-eslint/parser": "8.68.0",
     "all-contributors-cli": "6.26.1",
-    "chalk": "~4.1.2",
     "cross-env": "10.1.0",
     "css-loader": "7.1.4",
     "electron": "43.4.1",
