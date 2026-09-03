@@ -1724,8 +1724,10 @@ export class PostgreSQLClient extends BaseClient {
                         if (!field || Array.isArray(field))
                            return undefined;
 
-                        let schema: string = ast && ast.from && 'schema' in ast.from[0] ? ast.from[0].schema : this._schema;
-                        let table: string = ast && ast.from ? ast.from[0].name : null;
+                        const fromTable = ast && ast.from ? ast.from[0].name : null;
+
+                        let schema: string = fromTable && 'schema' in fromTable ? fromTable.schema : this._schema;
+                        let table: string = fromTable ? fromTable.name : null;
 
                         if (args.nest) {
                            schema = tablesInfo[field.tableID] ? tablesInfo[field.tableID].schema : this._schema;
@@ -1740,7 +1742,7 @@ export class PostgreSQLClient extends BaseClient {
                            table,
                            // TODO: pick ast.from index if multiple
                            tableAlias: ast && ast.from ? ast.from[0].as : null,
-                           orgTable: ast && ast.from ? ast.from[0].name : null,
+                           orgTable: fromTable ? fromTable.name : null,
                            type: this.types[field.dataTypeID] || field.format,
                            length: undefined as number,
                            key: undefined as string
