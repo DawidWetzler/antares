@@ -38,6 +38,13 @@ async function killElectron (pid) {
    });
 }
 
+function logCompileResult (name, compilation) {
+   if (compilation.errors.length)
+      console.error(styleText('red', `\nFailed to compile ${name} script, ${compilation.errors.length} error(s) above`));
+   else
+      console.log(styleText('gray', `\nCompiled ${name} script!`));
+}
+
 async function restartElectron () {
    console.log(styleText('gray', '\nStarting electron...'));
 
@@ -67,8 +74,8 @@ function startWorkers () {
    const compiler = webpack(workersConfig);
    const { name } = compiler;
 
-   compiler.hooks.afterEmit.tap('afterEmit', () => {
-      console.log(styleText('gray', `\nCompiled ${name} script!`));
+   compiler.hooks.afterEmit.tap('afterEmit', compilation => {
+      logCompileResult(name, compilation);
       console.log(styleText('gray', `\nWatching file changes for ${name} script...`));
    });
 
@@ -81,8 +88,8 @@ function startMain () {
    const compiler = webpack(mainConfig);
    const { name } = compiler;
 
-   compiler.hooks.afterEmit.tap('afterEmit', async () => {
-      console.log(styleText('gray', `\nCompiled ${name} script!`));
+   compiler.hooks.afterEmit.tap('afterEmit', async compilation => {
+      logCompileResult(name, compilation);
 
       manualRestart = true;
       await restartElectron();
@@ -104,8 +111,8 @@ function startRenderer (callback) {
    const compiler = webpack(rendererConfig);
    const { name } = compiler;
 
-   compiler.hooks.afterEmit.tap('afterEmit', () => {
-      console.log(styleText('gray', `\nCompiled ${name} script!`));
+   compiler.hooks.afterEmit.tap('afterEmit', compilation => {
+      logCompileResult(name, compilation);
       console.log(styleText('gray', `\nWatching file changes for ${name} script...`));
    });
 
