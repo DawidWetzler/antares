@@ -139,3 +139,55 @@ test.describe('settingbar connections overflow', () => {
       ).toBeVisible();
    });
 });
+
+/*
+ * Leaflet 1.9 dropped the `font-size: 11px` it used to put on the attribution and started sizing
+ * `.leaflet-container` in rem instead. Spectre sets `html { font-size: 20px }`, so that 0.75rem
+ * resolves to 15px rather than the 12px upstream assumes, and the vendor credit renders wider
+ * than the app's own table text. BaseMap.vue pins it back; this guards the pin against a future
+ * leaflet release reordering the cascade out from under it.
+ *
+ * The nodes are built here rather than by opening a real map, because the map only renders for a
+ * spatial cell and that needs a MySQL connection this harness does not make. What this covers is
+ * the cascade in the bundled stylesheet, which is where the regression lived. It does not cover
+ * BaseMap's root class changing away from `.map`.
+ */
+test.describe('leaflet attribution size', () => {
+   let app: LaunchedApp;
+
+   test.afterEach(async () => {
+      await closeApp(app);
+   });
+
+   test('keeps the leaflet credit at the size leaflet used to set itself', async () => {
+      app = await launchApp(makeUserDataDir());
+
+      const measured = await app.appWindow.evaluate(() => {
+         // leaflet puts `leaflet-container` on the very element handed to L.map(), which is
+         // BaseMap's own `.map` root, so both classes land on one node in the real DOM.
+         const map = document.createElement('div');
+         map.className = 'map leaflet-container';
+         const credit = document.createElement('div');
+         credit.className = 'leaflet-control-attribution';
+         credit.textContent = 'Leaflet';
+         map.appendChild(credit);
+         document.body.appendChild(map);
+
+         const { fontSize, lineHeight } = getComputedStyle(credit);
+         const rootFontSize = getComputedStyle(document.documentElement).fontSize;
+         const containerFontSize = getComputedStyle(map).fontSize;
+
+         map.remove();
+         return { fontSize, lineHeight, rootFontSize, containerFontSize };
+      });
+
+      expect(measured.rootFontSize, 'the 20px root is what makes leaflet 1.9 rem sizing wrong here')
+         .toBe('20px');
+      expect(measured.fontSize, 'expect the credit pinned in px, not scaled off the 20px root')
+         .toBe('11px');
+      expect(measured.lineHeight, 'expect the line box leaflet 1.7 inherited, not 1.9 own 1.4')
+         .toBe('16.5px');
+      expect(measured.containerFontSize, 'leaflet 1.9 sizes the container at 0.75rem = 15px here')
+         .toBe('15px');
+   });
+});
