@@ -1724,7 +1724,9 @@ export class PostgreSQLClient extends BaseClient {
                         if (!field || Array.isArray(field))
                            return undefined;
 
-                        const fromTable = ast && ast.from ? ast.from[0].name : null;
+                        // a SELECT carries an array of FROM entries, a DELETE a bare QName
+                        const fromEntry = ast && Array.isArray(ast.from) ? ast.from[0] : null;
+                        const fromTable = fromEntry ? fromEntry.name : (ast && ast.from ? ast.from : null);
 
                         let schema: string = fromTable && 'schema' in fromTable ? fromTable.schema : this._schema;
                         let table: string = fromTable ? fromTable.name : null;
@@ -1741,7 +1743,7 @@ export class PostgreSQLClient extends BaseClient {
                            schema,
                            table,
                            // TODO: pick ast.from index if multiple
-                           tableAlias: ast && ast.from ? ast.from[0].as : null,
+                           tableAlias: fromEntry ? fromEntry.as : null,
                            orgTable: fromTable ? fromTable.name : null,
                            type: this.types[field.dataTypeID] || field.format,
                            length: undefined as number,

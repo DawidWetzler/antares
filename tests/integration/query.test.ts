@@ -185,3 +185,29 @@ describe('query / dialect specific splitting', () => {
       }
    });
 });
+
+describe('query / pg field metadata for RETURNING', () => {
+   /*
+    * pgsql-ast-parser hands a DELETE a bare QName as `from`, where a SELECT gets an array of
+    * FROM entries. PostgreSQLClient reads the table out of `ast.from[0]` either way, so for a
+    * DELETE that index is undefined and the read throws before any row is returned. The
+    * statement runs on the server and its rows are discarded, so the query tab reports an
+    * error for a DELETE that actually succeeded.
+    */
+   it('pg returns rows and field metadata for a DELETE ... RETURNING', async t => {
+      if (!await requireServer(t, 'pg')) return;
+      const fx = await openFixture('pg', 'returning_pg');
+      try {
+         const result = await fx.client.raw(
+            `DELETE FROM ${fx.t('books')} WHERE id = 1 RETURNING id, title`
+         ) as Result;
+
+         assert.equal(result.rows.length, 1, 'the deleted row has to come back');
+         assert.deepEqual(result.fields.map(f => f.alias), ['id', 'title']);
+         assert.equal(result.fields[1].table, 'books', 'the grid labels the column with its table');
+      }
+      finally {
+         await fx.drop();
+      }
+   });
+});
