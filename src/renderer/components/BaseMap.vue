@@ -93,6 +93,15 @@ onMounted(() => {
 <style lang="scss">
 .map {
   height: 400px;
+
+  // Leaflet 1.9 dropped its own `font-size: 11px` on the attribution and sized
+  // `.leaflet-container` in `rem` instead. Spectre sets `html { font-size: 20px }`, so that
+  // `0.75rem` lands at 15px rather than the 12px upstream assumes, and the credit line comes
+  // out 36% too big. Pinned back to the absolute size Leaflet used to apply itself.
+  .leaflet-control-attribution {
+    font-size: 11px;
+    line-height: 1.5;
+  }
 }
 
 .marker-icon {
