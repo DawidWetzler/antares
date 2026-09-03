@@ -109,14 +109,14 @@ function startRenderer (callback) {
       console.log(chalk.gray(`\nWatching file changes for ${name} script...`));
    });
 
-   const server = new WebpackDevServer(compiler, {
+   const server = new WebpackDevServer({
       port: 9080,
       hot: true,
       client: {
          overlay: true,
          logging: 'warn'
       }
-   });
+   }, compiler);
 
    server.startCallback(err => {
       if (err) console.error(chalk.red(err));
