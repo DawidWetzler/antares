@@ -139,7 +139,6 @@
     "@vueuse/core": "14.4.0",
     "ace-builds": "1.44.0",
     "better-sqlite3": "13.0.3",
-    "ciaplu": "^2.2.0",
     "cpu-features": "^0.0.10",
     "dompurify": "3.4.14",
     "electron-log": "5.4.4",
