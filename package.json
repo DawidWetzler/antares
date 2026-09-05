@@ -134,7 +134,6 @@
     "@fabio286/ssh2-promise": "~1.0.4-b",
     "@faker-js/faker": "~6.1.2",
     "@mdi/js": "7.4.47",
-    "@turf/helpers": "7.4.0",
     "@vue/devtools-api": "8.2.1",
     "@vueuse/core": "14.4.0",
     "ace-builds": "1.44.0",

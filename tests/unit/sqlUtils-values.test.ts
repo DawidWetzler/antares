@@ -183,6 +183,31 @@ describe('objectToGeoJSON', () => {
       assert.equal(objectToGeoJSON([{ x: 1, y: 2 }, { x: 3, y: 4 }]).geometry.type, 'LineString');
       assert.equal(objectToGeoJSON([[{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 0 }]]).geometry.type, 'Polygon');
    });
+
+   test('a ring of fewer than four positions is rejected before it reaches the SQL', () => {
+      assert.throws(
+         () => objectToGeoJSON([[{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 0 }]]),
+         /Each LinearRing of a Polygon must have 4 or more Positions\./
+      );
+   });
+
+   test('an unclosed ring is rejected before it reaches the SQL', () => {
+      assert.throws(
+         () => objectToGeoJSON([[{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }]]),
+         /First and last Position are not equivalent\./
+      );
+   });
+
+   test('a single position is not a LineString', () => {
+      assert.throws(
+         () => objectToGeoJSON([{ x: 1, y: 2 }]),
+         /coordinates must be an array of two or more positions/
+      );
+   });
+
+   test('a point without numeric coordinates is rejected', () => {
+      assert.throws(() => objectToGeoJSON({}), /coordinates must contain numbers/);
+   });
 });
 
 // The shapes below are what mysql2 actually hands back, observed against percona 8.0 through

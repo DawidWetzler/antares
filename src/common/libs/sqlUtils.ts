@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-useless-escape */
-import { lineString, point, polygon } from '@turf/helpers';
 import { BIT, BLOB, DATE, DATETIME, FLOAT, IS_MULTI_SPATIAL, NUMBER, SPATIAL, TEXT_SEARCH } from 'common/fieldTypes';
 import * as antares from 'common/interfaces/antares';
 import { ClientCode } from 'common/interfaces/antares';
-import { Feature, FeatureCollection } from 'geojson';
+import { Feature, FeatureCollection, LineString, Point, Polygon, Position } from 'geojson';
 import moment from 'moment';
 
 import customizations from '../customizations';
@@ -169,6 +168,60 @@ export const sqlEscaper = (string: string): string => {
       const r = ['\\\\0', '\\\\b', '\\\\t', '\\\\z', '\\\\n', '\\\\r', '\\\'', '\\\"', '\\\\', '\\\\\\\\', '\%'];
       return r[m.indexOf(char)] || char;
    });
+};
+
+// GeoJSON constructors inlined from @turf/helpers. The output of these is string-interpolated
+// into `ST_GeomFromGeoJSON(...)` below, so the guards are what stops a malformed geometry
+// reaching the database as SQL.
+
+const isNumber = (num: unknown): boolean => !isNaN(num as number) && num !== null && !Array.isArray(num);
+
+const feature = (geometry: Point | LineString | Polygon): Feature => ({
+   type: 'Feature',
+   properties: {},
+   geometry
+});
+
+const point = (coordinates: Position): Feature => {
+   if (!coordinates)
+      throw new Error('coordinates is required');
+
+   if (!Array.isArray(coordinates))
+      throw new Error('coordinates must be an Array');
+
+   if (coordinates.length < 2)
+      throw new Error('coordinates must be at least 2 numbers long');
+
+   if (!isNumber(coordinates[0]) || !isNumber(coordinates[1]))
+      throw new Error('coordinates must contain numbers');
+
+   return feature({ type: 'Point', coordinates });
+};
+
+const lineString = (coordinates: Position[]): Feature => {
+   if (coordinates.length < 2)
+      throw new Error('coordinates must be an array of two or more positions');
+
+   return feature({ type: 'LineString', coordinates });
+};
+
+const polygon = (coordinates: Position[][]): Feature => {
+   for (const ring of coordinates) {
+      if (ring.length < 4)
+         throw new Error('Each LinearRing of a Polygon must have 4 or more Positions.');
+
+      const last = ring[ring.length - 1];
+
+      if (last.length !== ring[0].length)
+         throw new Error('First and last Position are not equivalent.');
+
+      for (let i = 0; i < last.length; i++) {
+         if (last[i] !== ring[0][i])
+            throw new Error('First and last Position are not equivalent.');
+      }
+   }
+
+   return feature({ type: 'Polygon', coordinates });
 };
 
 /**
