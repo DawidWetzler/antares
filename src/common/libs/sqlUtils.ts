@@ -4,6 +4,7 @@ import { lineString, point, polygon } from '@turf/helpers';
 import { BIT, BLOB, DATE, DATETIME, FLOAT, IS_MULTI_SPATIAL, NUMBER, SPATIAL, TEXT_SEARCH } from 'common/fieldTypes';
 import * as antares from 'common/interfaces/antares';
 import { ClientCode } from 'common/interfaces/antares';
+import { Feature, FeatureCollection } from 'geojson';
 import moment from 'moment';
 
 import customizations from '../customizations';
@@ -188,6 +189,27 @@ export const objectToGeoJSON = (val: any) => {
 };
 
 /**
+ * Converts a spatial value into the GeoJSON the map viewer and ST_GeomFromGeoJSON both consume.
+ *
+ * @param {any} val - The value to convert.
+ * @param {boolean} isMultiSpatial - Whether the value holds several geometries.
+ * @returns {object} - A Feature, or a FeatureCollection for a multi geometry.
+ */
+export const valueToGeoJSON = (val: any, isMultiSpatial: boolean): Feature | FeatureCollection => {
+   if (!isMultiSpatial)
+      return objectToGeoJSON(val);
+
+   const features = [];
+   for (const element of val)
+      features.push(objectToGeoJSON(element));
+
+   return {
+      type: 'FeatureCollection',
+      features
+   };
+};
+
+/**
  * Escapes and wraps a string in quotes for safe use in SQL queries.
  *
  * @param {string} val - The string to process.
@@ -298,23 +320,8 @@ export const valueToSqlString = (args: {
       parsedValue = val;
    else if (FLOAT.includes(field.type))
       parsedValue = parseFloat(val);
-   else if (SPATIAL.includes(field.type)) {
-      let geoJson;
-      if (IS_MULTI_SPATIAL.includes(field.type)) {
-         const features = [];
-         for (const element of val)
-            features.push(objectToGeoJSON(element));
-
-         geoJson = {
-            type: 'FeatureCollection',
-            features
-         };
-      }
-      else
-         geoJson = objectToGeoJSON(val);
-
-      parsedValue = `ST_GeomFromGeoJSON('${JSON.stringify(geoJson)}')`;
-   }
+   else if (SPATIAL.includes(field.type))
+      parsedValue = `ST_GeomFromGeoJSON('${JSON.stringify(valueToGeoJSON(val, IS_MULTI_SPATIAL.includes(field.type)))}')`;
    else if (val === '') parsedValue = `${sw}${sw}`;
    else {
       parsedValue = typeof val === 'string'

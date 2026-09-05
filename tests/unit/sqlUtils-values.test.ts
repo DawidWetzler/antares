@@ -1,7 +1,8 @@
 import * as assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { escapeAndQuote, formatJsonForSqlWhere, jsonToSqlInsert, objectToGeoJSON, valueToSqlString } from 'common/libs/sqlUtils';
+import { escapeAndQuote, formatJsonForSqlWhere, jsonToSqlInsert, objectToGeoJSON, valueToGeoJSON, valueToSqlString } from 'common/libs/sqlUtils';
+import { Feature, FeatureCollection } from 'geojson';
 
 const DIALECTS = ['mysql', 'pg', 'sqlite'] as const;
 // mysql wraps strings in `"`, pg/sqlite in `'` (see src/common/customizations/*).
@@ -181,6 +182,52 @@ describe('objectToGeoJSON', () => {
       assert.equal(objectToGeoJSON({ x: 1, y: 2 }).geometry.type, 'Point');
       assert.equal(objectToGeoJSON([{ x: 1, y: 2 }, { x: 3, y: 4 }]).geometry.type, 'LineString');
       assert.equal(objectToGeoJSON([[{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 0 }]]).geometry.type, 'Polygon');
+   });
+});
+
+// The shapes below are what mysql2 actually hands back, observed against percona 8.0 through
+// MySQLClient: every position is a `{ x, y }` object and the nesting depth carries the type.
+describe('valueToGeoJSON', () => {
+   const P = (x: number, y: number) => ({ x, y });
+   const RING = [P(0, 0), P(4, 0), P(4, 4), P(0, 4), P(0, 0)];
+
+   test('a single geometry becomes one Feature', () => {
+      assert.deepEqual(valueToGeoJSON(P(1, 2), false), {
+         type: 'Feature',
+         properties: {},
+         geometry: { type: 'Point', coordinates: [1, 2] }
+      });
+      assert.equal((valueToGeoJSON([P(0, 0), P(1, 1), P(2, 2)], false) as Feature).geometry.type, 'LineString');
+      assert.equal((valueToGeoJSON([RING], false) as Feature).geometry.type, 'Polygon');
+      assert.equal((valueToGeoJSON(P(5, 6), false) as Feature).geometry.type, 'Point');
+   });
+
+   test('a multi geometry becomes a FeatureCollection, one Feature per element', () => {
+      const collection = valueToGeoJSON([P(0, 0), P(1, 1)], true) as FeatureCollection;
+      assert.equal(collection.type, 'FeatureCollection');
+      assert.deepEqual(collection.features.map(f => f.geometry.type), ['Point', 'Point']);
+   });
+
+   test('each multi type keeps the geometry mysql2 nested it as', () => {
+      const cases: [string, unknown, string[]][] = [
+         ['MULTIPOINT', [P(0, 0), P(1, 1)], ['Point', 'Point']],
+         ['MULTILINESTRING', [[P(0, 0), P(1, 1)], [P(2, 2), P(3, 3)]], ['LineString', 'LineString']],
+         ['MULTIPOLYGON', [[RING], [[P(5, 5), P(6, 5), P(6, 6), P(5, 5)]]], ['Polygon', 'Polygon']],
+         ['GEOMCOLLECTION', [P(1, 1), [P(0, 0), P(2, 2)]], ['Point', 'LineString']],
+         ['GEOMETRYCOLLECTION', [P(1, 1), [RING]], ['Point', 'Polygon']]
+      ];
+
+      for (const [type, val, expected] of cases) {
+         const collection = valueToGeoJSON(val, true) as FeatureCollection;
+         assert.deepEqual(collection.features.map(f => f.geometry.type), expected, type);
+      }
+   });
+
+   test('a malformed ring inside a multi geometry throws instead of reaching the SQL', () => {
+      assert.throws(
+         () => valueToGeoJSON([[[P(0, 0), P(1, 0), P(1, 1), P(0, 1)]]], true),
+         /First and last Position are not equivalent\./
+      );
    });
 });
 
