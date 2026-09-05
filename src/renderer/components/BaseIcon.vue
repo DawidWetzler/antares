@@ -18,11 +18,11 @@
 
 <script setup lang="ts">
 import SvgIcon from '@jamescoyle/vue-icon';
-import * as Icons from '@mdi/js';
 // `export =` package: a default import compiles here but resolves to undefined.
 import DOMPurify from 'dompurify';
 import { computed, PropType } from 'vue';
 
+import { iconPaths } from '@/libs/iconPaths';
 import { useConnectionsStore } from '@/stores/connections';
 
 const { getIconByUid } = useConnectionsStore();
@@ -57,10 +57,10 @@ const isMdi = computed(() => props.type !== 'custom' || !customIcon.value);
 
 const iconPath = computed(() => {
    if (props.type === 'mdi')
-      return (Icons as {[k:string]: string})[props.iconName];
+      return iconPaths[props.iconName];
    else if (props.type === 'custom') {
       if (!customIcon.value)
-         return Icons.mdiImageBrokenVariant;
+         return iconPaths.mdiImageBrokenVariant;
 
       const svgString = Buffer
          .from(customIcon.value, 'base64')
