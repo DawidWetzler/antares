@@ -1,12 +1,16 @@
 <template>
-   <SvgIcon
+   <svg
       v-if="isMdi"
-      type="mdi"
-      :path="iconPath"
-      :size="size"
-      :rotate="rotate"
-      :class="iconFlip"
-   />
+      :width="size"
+      :height="size"
+      viewBox="0 0 24 24"
+      :style="{ transform: iconTransform }"
+   >
+      <path
+         :d="iconPath"
+         fill="currentColor"
+      />
+   </svg>
    <svg
       v-else
       :width="size"
@@ -17,7 +21,6 @@
 </template>
 
 <script setup lang="ts">
-import SvgIcon from '@jamescoyle/vue-icon';
 // `export =` package: a default import compiles here but resolves to undefined.
 import DOMPurify from 'dompurify';
 import { computed, PropType } from 'vue';
@@ -76,23 +79,16 @@ const iconPath = computed(() => {
    return null;
 });
 
-const iconFlip = computed(() => {
-   if (['horizontal', 'vertical', 'both'].includes(props.flip))
-      return `flip-${props.flip}`;
-   else return '';
-});
+const flips: Record<string, string> = {
+   horizontal: 'scaleX(-1)',
+   vertical: 'scaleY(-1)',
+   both: 'scale(-1, -1)'
+};
+
+// One `transform` for both: as two declarations on the same element the flip won on
+// specificity and the rotation was dropped.
+const iconTransform = computed(() => [
+   props.rotate ? `rotate(${props.rotate}deg)` : '',
+   flips[props.flip] ?? ''
+].filter(Boolean).join(' '));
 </script>
-
-<style lang="scss" scoped>
-.flip-horizontal {
-    transform: scaleX(-1);
-}
-
-.flip-vertical {
-    transform: scaleY(-1);
-}
-
-.flip-both {
-    transform: scale(-1, -1);
-}
-</style>
