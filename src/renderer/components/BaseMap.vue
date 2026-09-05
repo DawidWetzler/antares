@@ -82,16 +82,4 @@ onBeforeUnmount(() => map.value?.remove());
     line-height: 1.5;
   }
 }
-
-.marker-icon {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: var(--primary-color);
-  border-radius: 50%;
-
-  // sass-loader prepends an @import, so `@use "sass:color"` cannot be first here.
-  /* stylelint-disable-next-line scss/no-global-function-names */
-  box-shadow: 0 0 5px 1px darken($body-font-color-dark, 40%);
-}
 </style>
