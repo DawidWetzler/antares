@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import * as mysql from 'mysql2/promise';
 import { Page } from 'playwright';
 
-import { closeApp, launchApp, LaunchedApp, makeUserDataDir, seedConnectionsStore } from './helpers';
+import { closeApp, closeModal, launchApp, LaunchedApp, makeUserDataDir, seedConnectionsStore } from './helpers';
 
 // The map only renders for a spatial cell, and only MySQL and PostgreSQL map one. This drives the
 // MySQL server from tests/docker-compose.yml — the same one the integration suite uses.
@@ -88,6 +88,14 @@ const cell = (appWindow: Page, col: number) =>
 
 const mapModal = (appWindow: Page) => appWindow.locator('.modal.active .map');
 
+// Leaflet keeps the handlers it put on a DOM object in `_leaflet_events` on that object, and
+// `Map.remove()` is what detaches them again — nulling the slot rather than dropping the key,
+// hence the filter. `window` gets one for the map's resize handler.
+const leafletWindowHandlers = (appWindow: Page) =>
+   appWindow.evaluate(() => Object
+      .values((window as unknown as { _leaflet_events?: Record<string, unknown> })._leaflet_events || {})
+      .filter(Boolean).length);
+
 test.describe('spatial map preview', () => {
    let app: LaunchedApp;
 
@@ -125,5 +133,20 @@ test.describe('spatial map preview', () => {
          .toHaveClass(/leaflet-container/);
       await expect(mapModal(app.appWindow).locator('svg path'), 'both polygons of the MULTIPOLYGON are drawn')
          .toHaveCount(2);
+   });
+
+   test('takes its leaflet handlers off window when the modal closes', async () => {
+      app = await launchWithSpatialConnection();
+      await openShapesTable(app.appWindow);
+      await cell(app.appWindow, 1).dblclick();
+      await expect(mapModal(app.appWindow)).toHaveClass(/leaflet-container/);
+
+      expect(await leafletWindowHandlers(app.appWindow), 'the open map holds a window handler')
+         .toBeGreaterThan(0);
+
+      await closeModal(app.appWindow, '.modal.active');
+
+      expect(await leafletWindowHandlers(app.appWindow), 'closing the modal must not leave the map behind')
+         .toBe(0);
    });
 });

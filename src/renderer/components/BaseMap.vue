@@ -1,11 +1,11 @@
 <template>
-   <div id="map" class="map" />
+   <div ref="container" class="map" />
 </template>
 
 <script setup lang="ts">
 import { valueToGeoJSON } from 'common/libs/sqlUtils';
 import * as L from 'leaflet';
-import { onMounted, PropType, Ref, ref } from 'vue';
+import { onBeforeUnmount, onMounted, PropType, Ref, ref } from 'vue';
 
 interface Coordinates { x: number; y: number }
 
@@ -13,6 +13,7 @@ const props = defineProps({
    points: [Object, Array] as PropType<Coordinates | Coordinates[]>,
    isMultiSpatial: Boolean
 });
+const container: Ref<HTMLDivElement> = ref(null);
 const map: Ref<L.Map> = ref(null);
 const center: Ref<[number, number]> = ref(null);
 
@@ -22,7 +23,7 @@ onMounted(() => {
    if (!props.isMultiSpatial && !Array.isArray(props.points))
       center.value = [props.points.y, props.points.x];
 
-   map.value = L.map('map', {
+   map.value = L.map(container.value, {
       center: center.value || [0, 0],
       zoom: 15,
       minZoom: 1,
@@ -64,6 +65,8 @@ onMounted(() => {
       attribution: '&copy; <b>OpenStreetMap</b>'
    }).addTo(map.value);
 });
+
+onBeforeUnmount(() => map.value?.remove());
 </script>
 
 <style lang="scss">
