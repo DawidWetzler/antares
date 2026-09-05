@@ -1,4 +1,4 @@
-import moment from 'moment';
+import { dateToString, parseDate } from 'common/libs/dateUtils';
 
 export function useFilters () {
    const cutText = (string: string, length: number, escape?: boolean) => {
@@ -16,7 +16,10 @@ export function useFilters () {
       return string;
    };
 
-   const formatDate = (date: Date) => moment(date).isValid() ? moment(date).format('HH:mm:ss - YYYY/MM/DD') : date;
+   const formatDate = (date: Date) => {
+      const parsed = parseDate(date);
+      return parsed ? dateToString(parsed, 'HH:mm:ss - YYYY/MM/DD') : date;
+   };
 
    const localeString = (number: number | null) => {
       if (number !== null)

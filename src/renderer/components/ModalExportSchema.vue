@@ -282,8 +282,8 @@
 import { ClientCode, SchemaInfos } from 'common/interfaces/antares';
 import { Customizations } from 'common/interfaces/customizations';
 import { ExportOptions, ExportState } from 'common/interfaces/exporter';
+import { dateToString } from 'common/libs/dateUtils';
 import { ipcRenderer, IpcRendererEvent } from 'electron';
-import moment from 'moment';
 import { storeToRefs } from 'pinia';
 import { computed, onBeforeUnmount, Ref, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -346,7 +346,7 @@ const schemaItems = computed(() => {
    return [];
 });
 const filename = computed(() => {
-   const date = moment().format('YYYY-MM-DD_HH-mm-ss');
+   const date = dateToString(new Date(), 'YYYY-MM-DD_HH-mm-ss');
    return `${selectedTable.value || selectedSchema.value}_${date}`;
 });
 const dumpFilePath = computed(() => `${basePath.value}/${chosenFilename.value || filename.value}.${options.value.outputFormat}`);

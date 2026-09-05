@@ -240,11 +240,11 @@ import {
    TIME } from 'common/fieldTypes';
 import { QueryForeign, TableField } from 'common/interfaces/antares';
 import { bufferToBase64 } from 'common/libs/bufferToBase64';
+import { dateToString, parseDate } from 'common/libs/dateUtils';
 import { formatBytes } from 'common/libs/formatBytes';
 import hexToBinary, { HexChar } from 'common/libs/hexToBinary';
 import { langDetector } from 'common/libs/langDetector';
 import { mimeFromHex } from 'common/libs/mimeFromHex';
-import moment from 'moment';
 import { computed, nextTick, onBeforeUnmount, Prop, Ref, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -602,8 +602,10 @@ const typeFormat = (val: string | number | Date | number[], type: string, precis
 
    type = type.toUpperCase();
 
-   if (DATE.includes(type))
-      return moment(val).isValid() ? moment(val).format('YYYY-MM-DD') : val;
+   if (DATE.includes(type)) {
+      const date = parseDate(val as Date | string | number);
+      return date ? dateToString(date, 'YYYY-MM-DD') : val;
+   }
 
    if (DATETIME.includes(type)) {
       if (typeof val === 'string')
@@ -613,7 +615,8 @@ const typeFormat = (val: string | number | Date | number[], type: string, precis
       for (let i = 0; i < Number(precision); i++)
          datePrecision += i === 0 ? '.S' : 'S';
 
-      return moment(val).isValid() ? moment(val).format(`YYYY-MM-DD HH:mm:ss${datePrecision}`) : val;
+      const date = parseDate(val as Date | string | number);
+      return date ? dateToString(date, `YYYY-MM-DD HH:mm:ss${datePrecision}`) : val;
    }
 
    if (BLOB.includes(type)) {

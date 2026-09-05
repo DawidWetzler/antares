@@ -255,11 +255,11 @@
 import { BLOB, DATE, DATETIME, LONG_TEXT, TEXT, TIME } from 'common/fieldTypes';
 import { QueryResult, TableField } from 'common/interfaces/antares';
 import { TableUpdateParams } from 'common/interfaces/tableApis';
+import { dateToString, parseDate } from 'common/libs/dateUtils';
 import { fakerCustom } from 'common/libs/fakerCustom';
 import { jsonToSqlInsert } from 'common/libs/sqlUtils';
 import { uidGen } from 'common/libs/uidGen';
 import * as json2php from 'json2php';
-import moment from 'moment';
 import { storeToRefs } from 'pinia';
 import { Component, computed, nextTick, onMounted, onUnmounted, onUpdated, Prop, Ref, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -511,13 +511,13 @@ const updateField = (payload: { field: string; type: string; content: any }, row
    const orgRow: any = localResults.value.find((lr: any) => lr._antares_id === row._antares_id);
 
    Object.keys(orgRow).forEach(key => { // remap the row
-      if (orgRow[key] instanceof Date && moment(orgRow[key]).isValid()) { // if datetime
+      if (orgRow[key] instanceof Date && !isNaN(orgRow[key].getTime())) { // if datetime
          let datePrecision = '';
          const precision = fields.value.find(field => field.name === key)?.datePrecision;
          for (let i = 0; i < precision; i++)
             datePrecision += i === 0 ? '.S' : 'S';
 
-         orgRow[key] = moment(orgRow[key]).format(`YYYY-MM-DD HH:mm:ss${datePrecision}`);
+         orgRow[key] = dateToString(orgRow[key], `YYYY-MM-DD HH:mm:ss${datePrecision}`);
       }
    });
 
@@ -699,7 +699,7 @@ const fillCell = (event: { name: string; group: string; type: string }) => {
    fakeValue = (fakerCustom as any)[event.group][event.name]();
    const isDateType = [...DATE, ...DATETIME].includes(selectedCell.value.type);
    if (isDateType)
-      fakeValue = moment(fakeValue).format(`YYYY-MM-DD HH:mm:ss${datePrecision}`);
+      fakeValue = dateToString(parseDate(fakeValue), `YYYY-MM-DD HH:mm:ss${datePrecision}`);
    else if (['string', 'number'].includes(typeof fakeValue)) {
       if (typeof fakeValue === 'number')
          fakeValue = String(fakeValue);
@@ -707,7 +707,7 @@ const fillCell = (event: { name: string; group: string; type: string }) => {
          fakeValue = fakeValue.substring(0, selectedCell.value.length < 1024 ? Number(selectedCell.value.length) : 1024);
    }
    else if (TIME.includes(selectedCell.value.type))
-      fakeValue = moment(fakeValue).format(`HH:mm:ss${datePrecision}`);
+      fakeValue = dateToString(parseDate(fakeValue), `HH:mm:ss${datePrecision}`);
 
    const params = {
       primary: primaryField.value?.name,

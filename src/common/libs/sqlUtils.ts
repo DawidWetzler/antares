@@ -4,9 +4,9 @@ import { BIT, BLOB, DATE, DATETIME, FLOAT, IS_MULTI_SPATIAL, NUMBER, SPATIAL, TE
 import * as antares from 'common/interfaces/antares';
 import { ClientCode } from 'common/interfaces/antares';
 import { Feature, FeatureCollection, LineString, Point, Polygon, Position } from 'geojson';
-import moment from 'moment';
 
 import customizations from '../customizations';
+import { dateToString, parseDate } from './dateUtils';
 import { getArrayDepth } from './getArrayDepth';
 import hexToBinary, { HexChar } from './hexToBinary';
 
@@ -323,8 +323,9 @@ export const valueToSqlString = (args: {
    if (val === null)
       parsedValue = 'NULL';
    else if (DATE.includes(field.type)) {
-      parsedValue = moment(val).isValid()
-         ? escapeAndQuote(moment(val).format('YYYY-MM-DD'), client)
+      const date = parseDate(val);
+      parsedValue = date
+         ? escapeAndQuote(dateToString(date, 'YYYY-MM-DD'), client)
          : val;
    }
    else if (DATETIME.includes(field.type)) {
@@ -332,8 +333,9 @@ export const valueToSqlString = (args: {
       for (let i = 0; i < field.datePrecision; i++)
          datePrecision += i === 0 ? '.S' : 'S';
 
-      parsedValue = moment(val).isValid()
-         ? escapeAndQuote(moment(val).format(`YYYY-MM-DD HH:mm:ss${datePrecision}`), client)
+      const date = parseDate(val);
+      parsedValue = date
+         ? escapeAndQuote(dateToString(date, `YYYY-MM-DD HH:mm:ss${datePrecision}`), client)
          : escapeAndQuote(val, client);
    }
    else if ('isArray' in field && field.isArray) {

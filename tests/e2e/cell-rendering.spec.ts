@@ -24,7 +24,7 @@ test.describe('cell rendering', () => {
    });
 
    // SQLite hands DATETIME over as a string and typeFormat returns strings verbatim, so the
-   // date assertion pins delivery of the stored value, not moment's formatting.
+   // date assertion pins delivery of the stored value, not typeFormat's date formatting.
    test('renders a BLOB as its mime type and a DATETIME as its stored value', async () => {
       await expect(blobRow(appWindow).nth(1), 'the PNG magic bytes reach mimeFromHex intact')
          .toHaveText('image/png (8 Bytes)');

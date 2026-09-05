@@ -2,11 +2,11 @@ import customizations from 'common/customizations';
 import { ARRAY, BIT, BLOB, BOOLEAN, DATE, DATETIME, FLOAT, LONG_TEXT, NUMBER, TEXT, TEXT_SEARCH } from 'common/fieldTypes';
 import * as antares from 'common/interfaces/antares';
 import { InsertRowsParams } from 'common/interfaces/tableApis';
+import { dateToString, parseDate } from 'common/libs/dateUtils';
 import { fakerCustom } from 'common/libs/fakerCustom';
 import { formatJsonForSqlWhere, sqlEscaper } from 'common/libs/sqlUtils';
 import { ipcMain } from 'electron';
 import * as fs from 'fs';
-import moment from 'moment';
 
 import { validateSender } from '../libs/misc/validateSender';
 
@@ -416,7 +416,7 @@ export default (connections: Record<string, antares.Client>) => {
                      }
                   }
                   else if ([...DATE, ...DATETIME].includes(type))
-                     fakeValue = `'${moment(fakeValue).format('YYYY-MM-DD HH:mm:ss.SSSSSS')}'`;
+                     fakeValue = `'${dateToString(parseDate(fakeValue), 'YYYY-MM-DD HH:mm:ss.SSSSSS')}'`;
 
                   insertObj[key] = fakeValue;
                }

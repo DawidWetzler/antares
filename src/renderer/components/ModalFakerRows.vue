@@ -104,7 +104,7 @@
 <script setup lang="ts">
 import { BIT, BLOB, DATE, DATETIME, FLOAT, LONG_TEXT, NUMBER, TEXT, TIME } from 'common/fieldTypes';
 import { TableField, TableForeign } from 'common/interfaces/antares';
-import moment from 'moment';
+import { dateToString } from 'common/libs/dateUtils';
 import { storeToRefs } from 'pinia';
 import { computed, onBeforeMount, onMounted, Prop, Ref, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -317,7 +317,7 @@ onMounted(() => {
                   let datePrecision = '';
                   for (let i = 0; i < field.datePrecision; i++)
                      datePrecision += i === 0 ? '.S' : 'S';
-                  fieldDefault = moment().format(`YYYY-MM-DD HH:mm:ss${datePrecision}`);
+                  fieldDefault = dateToString(new Date(), `YYYY-MM-DD HH:mm:ss${datePrecision}`);
                }
                else
                   fieldDefault = field.default;

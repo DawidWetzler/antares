@@ -151,9 +151,9 @@
 
 <script setup lang="ts">
 import { ConnectionParams } from 'common/interfaces/antares';
+import { dateToString } from 'common/libs/dateUtils';
 import { encrypt } from 'common/libs/encrypter';
 import { uidGen } from 'common/libs/uidGen';
-import moment from 'moment';
 import { storeToRefs } from 'pinia';
 import { computed, onBeforeUnmount, Ref, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -184,7 +184,7 @@ const options = ref({
    }
 });
 const filename = computed(() => {
-   const date = moment().format('YYYY-MM-DD');
+   const date = dateToString(new Date(), 'YYYY-MM-DD');
    return `backup_${date}`;
 });
 const includeConnectionStatus = computed(() => {

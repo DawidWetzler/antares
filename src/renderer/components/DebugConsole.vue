@@ -51,7 +51,7 @@
                tabindex="0"
                @contextmenu.prevent="contextMenu($event, wLog)"
             >
-               <span class="console-log-datetime">{{ moment(wLog.date).format('HH:mm:ss') }}</span>: <code class="console-log-sql" v-html="highlight(wLog.sql, {html: true})" />
+               <span class="console-log-datetime">{{ dateToString(wLog.date, 'HH:mm:ss') }}</span>: <code class="console-log-sql" v-html="highlight(wLog.sql, {html: true})" />
             </div>
          </div>
          <div
@@ -66,7 +66,7 @@
                tabindex="0"
                @contextmenu.prevent="contextMenu($event, log)"
             >
-               <span class="console-log-datetime">{{ moment(log.date).format('HH:mm:ss') }}</span> <small>[{{ log.process.substring(0, 1).toUpperCase() }}]</small>: <span class="console-log-message" :class="`console-log-level-${log.level}`">{{ log.message }}</span>
+               <span class="console-log-datetime">{{ dateToString(log.date, 'HH:mm:ss') }}</span> <small>[{{ log.process.substring(0, 1).toUpperCase() }}]</small>: <span class="console-log-message" :class="`console-log-level-${log.level}`">{{ log.message }}</span>
             </div>
          </div>
       </div>
@@ -87,7 +87,7 @@
    </BaseContextMenu>
 </template>
 <script setup lang="ts">
-import moment from 'moment';
+import { dateToString } from 'common/libs/dateUtils';
 import { storeToRefs } from 'pinia';
 import { highlight } from 'sql-highlight';
 import { computed, nextTick, onMounted, Ref, ref, watch } from 'vue';

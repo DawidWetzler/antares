@@ -152,7 +152,7 @@
 
 <script setup lang="ts">
 import { EventInfos } from 'common/interfaces/antares';
-import moment from 'moment';
+import { dateToString } from 'common/libs/dateUtils';
 import { Ref, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -190,9 +190,9 @@ optionsProxy.value = JSON.parse(JSON.stringify(props.localOptions));
 hasStart.value = !!optionsProxy.value.starts;
 hasEnd.value = !!optionsProxy.value.ends;
 
-if (!optionsProxy.value.at) optionsProxy.value.at = moment().format('YYYY-MM-DD HH:mm:ss');
-if (!optionsProxy.value.starts) optionsProxy.value.starts = moment().format('YYYY-MM-DD HH:mm:ss');
-if (!optionsProxy.value.ends) optionsProxy.value.ends = moment().format('YYYY-MM-DD HH:mm:ss');
+if (!optionsProxy.value.at) optionsProxy.value.at = dateToString(new Date(), 'YYYY-MM-DD HH:mm:ss');
+if (!optionsProxy.value.starts) optionsProxy.value.starts = dateToString(new Date(), 'YYYY-MM-DD HH:mm:ss');
+if (!optionsProxy.value.ends) optionsProxy.value.ends = dateToString(new Date(), 'YYYY-MM-DD HH:mm:ss');
 if (!optionsProxy.value.every.length) optionsProxy.value.every = ['1', 'DAY'];
 
 </script>

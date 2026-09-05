@@ -1,4 +1,4 @@
-import moment from 'moment';
+import { dateToString } from 'common/libs/dateUtils';
 
 import { MySQLClient } from '../../clients/MySQLClient';
 import { PostgreSQLClient } from '../../clients/PostgreSQLClient';
@@ -142,14 +142,14 @@ https://github.com/antares-sql/antares
 
 Host: ${this.host} (${serverVersion})
 Database: ${this.schemaName}
-Generation time: ${moment().format()}
+Generation time: ${dateToString(new Date(), 'YYYY-MM-DDTHH:mm:ssZ')}
 ************************************************************`;
 
       return this.buildComment(header);
    }
 
    async getFooter () {
-      return this.buildComment(`Dump completed on ${moment().format()}`);
+      return this.buildComment(`Dump completed on ${dateToString(new Date(), 'YYYY-MM-DDTHH:mm:ssZ')}`);
    }
 
    /* eslint-disable @typescript-eslint/no-unused-vars */
