@@ -3,13 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-   lineString,
-   point,
-   polygon
-} from '@turf/helpers';
-import { getArrayDepth } from 'common/libs/getArrayDepth';
-import { GeoJsonObject } from 'geojson';
+import { valueToGeoJSON } from 'common/libs/sqlUtils';
 import * as L from 'leaflet';
 import { onMounted, PropType, Ref, ref } from 'vue';
 
@@ -20,31 +14,13 @@ const props = defineProps({
    isMultiSpatial: Boolean
 });
 const map: Ref<L.Map> = ref(null);
-const markers: Ref<GeoJsonObject | GeoJsonObject[]> = ref(null);
 const center: Ref<[number, number]> = ref(null);
 
-const getMarkers = (points: Coordinates) => {
-   if (Array.isArray(points)) {
-      if (getArrayDepth(points) === 1)
-         return lineString(points.reduce((acc, curr) => [...acc, [curr.x, curr.y]], []));
-      else
-         return polygon(points.map(arr => arr.reduce((acc: Coordinates[], curr: Coordinates) => [...acc, [curr.x, curr.y]], [])));
-   }
-   else
-      return point([points.x, points.y]);
-};
-
 onMounted(() => {
-   if (props.isMultiSpatial) {
-      for (const element of props.points as Coordinates[])
-         (markers.value as GeoJsonObject[]).push(getMarkers(element));
-   }
-   else {
-      markers.value = getMarkers(props.points as Coordinates);
+   const markers = valueToGeoJSON(props.points, props.isMultiSpatial);
 
-      if (!Array.isArray(props.points))
-         center.value = [props.points.y, props.points.x];
-   }
+   if (!props.isMultiSpatial && !Array.isArray(props.points))
+      center.value = [props.points.y, props.points.x];
 
    map.value = L.map('map', {
       center: center.value || [0, 0],
@@ -55,7 +31,7 @@ onMounted(() => {
 
    L.control.attribution({ prefix: '<b>Leaflet</b>' }).addTo(map.value);
 
-   const geoJsonObj = L.geoJSON((markers.value as GeoJsonObject), {
+   const geoJsonObj = L.geoJSON(markers, {
       style: function () {
          return {
             weight: 2,
