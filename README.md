@@ -95,7 +95,7 @@ On macOS you can run `.dmg` distribution following [this guide](https://support.
 
 - [ ] Windows
 - [x] Linux
-- [ ] MacOS
+- [x] MacOS
 
 ## How to contribute
 
