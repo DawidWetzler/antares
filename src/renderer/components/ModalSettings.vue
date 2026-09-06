@@ -415,28 +415,12 @@
                            <a
                               class="c-hand"
                               :style="'align-items: center; display: inline-flex;'"
-                              @click="openOutside('https://github.com/antares-sql/antares')"
+                              @click="openOutside('https://github.com/DawidWetzler/antares')"
                            ><BaseIcon
                               icon-name="mdiGithub"
                               class="d-inline mr-1"
                               :size="16"
-                           /> GitHub</a> • <a
-                              class="c-hand"
-                              :style="'align-items: center; display: inline-flex;'"
-                              @click="openOutside('https://fosstodon.org/@AntaresSQL')"
-                           ><BaseIcon
-                              icon-name="mdiMastodon"
-                              class="d-inline mr-1"
-                              :size="16"
-                           /> Mastodon</a> • <a
-                              class="c-hand"
-                              :style="'align-items: center; display: inline-flex;'"
-                              @click="openOutside('https://antares-sql.app/')"
-                           ><BaseIcon
-                              icon-name="mdiWeb"
-                              class="d-inline mr-1"
-                              :size="16"
-                           /> Website</a><br>
+                           /> GitHub</a><br>
                            <small>{{ t('general.author') }} <a class="c-hand" @click="openOutside('https://github.com/Fabio286')">{{ appAuthor }}</a></small><br>
                         </p>
                         <div class="mb-2">

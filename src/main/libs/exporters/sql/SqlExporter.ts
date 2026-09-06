@@ -137,8 +137,7 @@ export class SqlExporter extends BaseExporter {
 Antares - SQL Client
 Version ${process.env.PACKAGE_VERSION}
 
-https://antares-sql.app/
-https://github.com/antares-sql/antares
+https://github.com/DawidWetzler/antares
 
 Host: ${this.host} (${serverVersion})
 Database: ${this.schemaName}
