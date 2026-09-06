@@ -44,6 +44,13 @@
   },
   "build": {
     "appId": "com.fabio286.antares",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "DawidWetzler",
+        "repo": "antares"
+      }
+    ],
     "artifactName": "${productName}-${version}-${os}_${arch}.${ext}",
     "asar": true,
     "buildDependenciesFromSource": true,

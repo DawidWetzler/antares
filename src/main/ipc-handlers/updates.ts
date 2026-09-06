@@ -3,6 +3,7 @@ import log from 'electron-log/main';
 import Store from 'electron-store';
 import { autoUpdater } from 'electron-updater';
 
+import { updateStrategy } from '../libs/misc/updateStrategy';
 import { validateSender } from '../libs/misc/validateSender';
 
 const persistentStore = new Store({
@@ -15,7 +16,10 @@ const persistentStore = new Store({
    }
 });
 
-const isMacOS = process.platform === 'darwin';
+const strategy = updateStrategy(process.platform, {
+   isWindowsStore: !!process.windowsStore,
+   isAppImage: !!process.env.APPIMAGE
+});
 let mainWindow: Electron.IpcMainEvent;
 autoUpdater.allowPrerelease = persistentStore.get('allow_prerelease', false) as boolean;
 
@@ -24,16 +28,20 @@ export default () => {
       if (!validateSender(event.senderFrame)) return;
 
       mainWindow = event;
-      if (process.windowsStore || (process.platform === 'linux' && !process.env.APPIMAGE))
+      if (strategy === 'none') {
          mainWindow.reply('no-auto-update');
-      else if (isMacOS) { // Temporary solution on MacOS for unsigned app updates
-         autoUpdater.autoDownload = false;
+         return;
       }
-      else {
-         autoUpdater.checkForUpdatesAndNotify().catch(() => {
-            mainWindow.reply('check-failed');
-         });
-      }
+
+      autoUpdater.autoDownload = strategy === 'auto';
+
+      const check = strategy === 'auto'
+         ? autoUpdater.checkForUpdatesAndNotify()
+         : autoUpdater.checkForUpdates();
+
+      check.catch(() => {
+         mainWindow.reply('check-failed');
+      });
    });
 
    ipcMain.on('restart-to-update', event => {
@@ -48,7 +56,7 @@ export default () => {
    });
 
    autoUpdater.on('update-available', () => {
-      if (isMacOS)
+      if (strategy === 'notify')
          mainWindow.reply('link-to-download');
       else
          mainWindow.reply('update-available');
