@@ -18,7 +18,6 @@ jobs:
       - name: npm install & build
         run: |
           npm install
-          npm install "dmg-license" --save-optional
           npm run build
 
       - name: Upload Artifact
@@ -46,7 +45,6 @@ jobs:
       - name: npm install & build
         run: |
           npm install
-          npm install "dmg-license" --save-optional
           npm run build
 
       - name: Upload Artifact

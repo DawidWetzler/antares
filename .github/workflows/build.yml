@@ -37,7 +37,6 @@ jobs:
       - name: Install dependencies
         run: | 
           npm i
-          npm install "dmg-license" --save-optional
         
       - name: "Build"
         run: npm run build
