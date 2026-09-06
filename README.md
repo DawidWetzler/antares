@@ -7,7 +7,9 @@
 
 # Antares SQL Client
 
-![GitHub package.json version](https://img.shields.io/github/package-json/v/antares-sql/antares) ![GitHub](https://img.shields.io/github/license/antares-sql/antares) ![Test e2e](https://github.com/antares-sql/antares/actions/workflows/test-e2e-win.yml/badge.svg?branch=develop) ![Mastodon Follow](https://img.shields.io/mastodon/follow/%20110860460902482117?domain=https%3A%2F%2Ffosstodon.org&style=social) [![Plant a Tree](https://raw.githubusercontent.com/Fabio286/treedom-badge/master/svg/plant-a-tree.svg)](https://www.treedom.net/en/user/fabio-di-stasio/event/antares-for-the-planet)
+![GitHub package.json version](https://img.shields.io/github/package-json/v/DawidWetzler/antares) ![GitHub](https://img.shields.io/github/license/DawidWetzler/antares) ![Mastodon Follow](https://img.shields.io/mastodon/follow/%20110860460902482117?domain=https%3A%2F%2Ffosstodon.org&style=social) [![Plant a Tree](https://raw.githubusercontent.com/Fabio286/treedom-badge/master/svg/plant-a-tree.svg)](https://www.treedom.net/en/user/fabio-di-stasio/event/antares-for-the-planet)
+
+This is a fork of [antares-sql/antares](https://github.com/antares-sql/antares) by Fabio Di Stasio, maintained here with additional fixes. Builds published from this fork are not affiliated with the upstream project.
 
 Antares is an SQL client based on [Electron.js](https://github.com/electron/electron) and [Vue.js](https://github.com/vuejs/vue) that aims to become a useful tool, especially for developers.  
 Our target is to support as many databases as possible, and all major operating systems, including the ARM versions.  
@@ -16,7 +18,7 @@ Our target is to support as many databases as possible, and all major operating 
 However, there are all the features necessary to have a pleasant database management experience, so give it a chance and send us your feedback, we would really appreciate it.  
 We are actively working on it, hoping to provide new cool features, improvements and fixes as soon as possible.  
 
-🔗 If you are curious to try Antares you can download and install the [latest release](https://github.com/antares-sql/antares/releases/latest).  
+🔗 If you are curious to try Antares you can download and install the [latest release](https://github.com/DawidWetzler/antares/releases/latest).  
 👁 To stay tuned for new releases follow Antares SQL on [Mastodon](https://fosstodon.org/@AntaresSQL).  
 🌟 Don't forget to **leave a star** if you appreciate this project.  
 
@@ -56,11 +58,11 @@ Since Antares SQL is a free software we don't have a budget to spend on annual l
 
 ### Linux
 
-On Linux you can simply download and run the `.AppImage` distribution, install from FlatHub, Snap Store, AUR or from our [PPA repository](https://github.com/antares-sql/antares-ppa).
+On Linux you can download and run the `.AppImage` distribution, or install the `.deb` package, from the [latest release](https://github.com/DawidWetzler/antares/releases/latest).
 
 ### Windows
 
-On Windows you can choose between downloading the app from Microsoft Store or downloading the `.exe` from our [website](https://antares-sql.app/downloads) or [this github repo](https://github.com/antares-sql/antares/releases/latest). Distributions that are not from Microsoft Store are not signed with a certificate, so to install you need to click on "More info" and then "Run anyway" on SmartScreen prompt.
+On Windows download the `.exe` from the [latest release](https://github.com/DawidWetzler/antares/releases/latest). It is not signed with a certificate, so to install you need to click on "More info" and then "Run anyway" on the SmartScreen prompt.
 
 ### MacOS
 
@@ -86,8 +88,7 @@ xattr -dr com.apple.quarantine /Applications/Antares.app
 
 ## Download
 
-[<img height='56' alt='Download on Flathub' src='https://dl.flathub.org/assets/badges/flathub-badge-en.svg'/>](https://flathub.org/apps/it.fabiodistasio.AntaresSQL) [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/antares) [![Get it from AUR](https://raw.githubusercontent.com/antares-sql/antares/master/docs/aur-badge.svg)](https://aur.archlinux.org/packages/antares-sql-bin) [<img src="https://developer.microsoft.com/store/badges/images/English_get-it-from-MS.png" style="height: 56px">](https://www.microsoft.com/p/antares-sql-client/9nhtb9sq51r1?cid=storebadge&ocid=badge&rtc=1&activetab=pivot:overviewtab)  
-🚀 **[Other Downloads](https://github.com/antares-sql/antares/releases/latest)**
+🚀 **[All downloads](https://github.com/DawidWetzler/antares/releases/latest)**
 
 ## Currently supported
 
