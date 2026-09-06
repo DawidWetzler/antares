@@ -2,6 +2,7 @@ import { ShortcutRecord } from 'common/shortcuts';
 import { ipcRenderer } from 'electron';
 import Store from 'electron-store';
 import { defineStore } from 'pinia';
+import { ref } from 'vue';
 
 import { AvailableLocale, i18n } from '@/i18n';
 
@@ -10,9 +11,14 @@ const shortcutsStore = new Store({ name: 'shortcuts' });
 const isDarkTheme = window.matchMedia('(prefers-color-scheme: dark)');
 const defaultAppTheme = isDarkTheme.matches ? 'dark' : 'light';
 const defaultEditorTheme = isDarkTheme.matches ? 'twilight' : 'sqlserver';
+const prefersDark = ref(isDarkTheme.matches);
+
+isDarkTheme.addEventListener('change', e => {
+   prefersDark.value = e.matches;
+});
 
 export type EditorFontSize = 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge' | 'xxlarge';
-export type ApplicationTheme = 'light' | 'dark';
+export type ApplicationTheme = 'light' | 'dark' | 'system';
 
 export const useSettingsStore = defineStore('settings', {
    state: () => ({
@@ -33,6 +39,11 @@ export const useSettingsStore = defineStore('settings', {
       shortcuts: shortcutsStore.get('shortcuts', []) as ShortcutRecord[],
       defaultCopyType: settingsStore.get('default_copy_type', 'cell') as string
    }),
+   getters: {
+      resolvedTheme: (state): 'light' | 'dark' => state.applicationTheme === 'system'
+         ? (prefersDark.value ? 'dark' : 'light')
+         : state.applicationTheme
+   },
    actions: {
       changeLocale (locale: AvailableLocale) {
          this.locale = locale;
@@ -71,7 +82,7 @@ export const useSettingsStore = defineStore('settings', {
          this.executeSelected = val;
          settingsStore.set('execute_selected', this.executeSelected);
       },
-      changeApplicationTheme (theme: string) {
+      changeApplicationTheme (theme: ApplicationTheme) {
          this.applicationTheme = theme;
          settingsStore.set('application_theme', this.applicationTheme);
          ipcRenderer.send('refresh-theme-settings');

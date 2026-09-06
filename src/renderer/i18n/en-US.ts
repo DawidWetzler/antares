@@ -306,6 +306,7 @@ export const enUS = {
       event: 'Event',
       light: 'Light',
       dark: 'Dark',
+      system: 'System',
       autoCompletion: 'Auto Completion',
       application: 'Application',
       editor: 'Editor',

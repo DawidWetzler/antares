@@ -1,7 +1,7 @@
 <template>
    <div class="column col-12 empty">
       <div class="empty-icon">
-         <img :src="logos[applicationTheme]" width="200">
+         <img :src="logos[resolvedTheme]" width="200">
       </div>
       <p class="h6 empty-subtitle">
          {{ t('application.noOpenTabs') }}
@@ -39,7 +39,7 @@ const logos = {
 const settingsStore = useSettingsStore();
 const workspacesStore = useWorkspacesStore();
 
-const { applicationTheme } = storeToRefs(settingsStore);
+const { resolvedTheme } = storeToRefs(settingsStore);
 const { getSelected: selectedWorkspace } = storeToRefs(workspacesStore);
 
 const { getWorkspace, changeBreadcrumbs } = workspacesStore;

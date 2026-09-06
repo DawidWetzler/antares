@@ -263,7 +263,27 @@
                               {{ t('application.applicationTheme') }}
                            </div>
                            <div
-                              class="column col-6 c-hand theme-block"
+                              class="column col-4 c-hand theme-block theme-system"
+                              :class="{'selected': applicationTheme === 'system'}"
+                              @click="changeApplicationTheme('system')"
+                           >
+                              <div class="theme-preview">
+                                 <img :src="lightPreview" class="img-responsive img-fit-cover s-rounded">
+                                 <img :src="darkPreview" class="img-responsive img-fit-cover s-rounded theme-split">
+                              </div>
+                              <div class="theme-name text-light">
+                                 <BaseIcon
+                                    icon-name="mdiThemeLightDark"
+                                    class="mr-1"
+                                    :size="48"
+                                 />
+                                 <div class="h6 mt-4">
+                                    {{ t('application.system') }}
+                                 </div>
+                              </div>
+                           </div>
+                           <div
+                              class="column col-4 c-hand theme-block"
                               :class="{'selected': applicationTheme === 'dark'}"
                               @click="changeApplicationTheme('dark')"
                            >
@@ -280,7 +300,7 @@
                               </div>
                            </div>
                            <div
-                              class="column col-6 c-hand theme-block"
+                              class="column col-4 c-hand theme-block"
                               :class="{'selected': applicationTheme === 'light'}"
                               @click="changeApplicationTheme('light')"
                            >
@@ -710,6 +730,30 @@ onBeforeUnmount(() => {
           &.disabled {
             cursor: not-allowed;
             opacity: 0.5;
+          }
+
+          &.theme-system {
+            .theme-preview {
+              position: relative;
+            }
+
+            .theme-split {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              clip-path: polygon(60% 0, 100% 0, 100% 100%, 40% 100%);
+              filter: drop-shadow(-2px 0 0 $unknown-color);
+            }
+
+            .theme-name {
+              text-shadow: 0 0 0.4rem $bg-color-dark;
+
+              svg {
+                filter: drop-shadow(0 0 0.2rem $bg-color-dark);
+              }
+            }
           }
 
           .theme-name {

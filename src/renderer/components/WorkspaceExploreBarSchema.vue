@@ -457,7 +457,7 @@ const emit = defineEmits([
 const settingsStore = useSettingsStore();
 const workspacesStore = useWorkspacesStore();
 
-const { applicationTheme } = storeToRefs(settingsStore);
+const { resolvedTheme } = storeToRefs(settingsStore);
 
 const {
    getLoadedSchemas,
@@ -676,7 +676,7 @@ const showMiscFolderContext = (event: MouseEvent, type: string) => {
 
 const piePercentage = (val: number) => {
    const perc = val / maxSize.value * 100;
-   if (applicationTheme.value === 'dark')
+   if (resolvedTheme.value === 'dark')
       return { background: `conic-gradient(lime ${perc}%, white 0)` };
    else
       return { background: `conic-gradient(teal ${perc}%, silver 0)` };

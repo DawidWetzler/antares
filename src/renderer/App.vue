@@ -1,5 +1,5 @@
 <template>
-   <div id="wrapper" :class="[`theme-${applicationTheme}`, !disableBlur || 'no-blur']">
+   <div id="wrapper" :class="[`theme-${resolvedTheme}`, !disableBlur || 'no-blur']">
       <TheTitleBar />
       <div id="window-content">
          <TheSettingBar @show-connections-modal="isAllConnectionsModal = true" />
@@ -71,7 +71,7 @@ const {
    isScratchpad
 } = storeToRefs(applicationStore);
 const { connections } = storeToRefs(connectionsStore);
-const { applicationTheme, disableBlur } = storeToRefs(settingsStore);
+const { applicationTheme, resolvedTheme, disableBlur } = storeToRefs(settingsStore);
 const { getSelected: selectedWorkspace } = storeToRefs(workspacesStore);
 
 const { checkVersionUpdate } = applicationStore;

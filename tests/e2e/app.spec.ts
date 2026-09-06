@@ -104,7 +104,7 @@ test.describe('preferences persistence', () => {
 
       await openSettingsModal(app.appWindow);
       await app.appWindow.locator('#settings .tab-item', { hasText: 'Themes' }).click();
-      await app.appWindow.locator('#settings .theme-block').first().click();// dark is the first block
+      await app.appWindow.locator('#settings .theme-block', { hasText: 'Dark' }).click();
       await expect(app.appWindow.locator('#wrapper')).toHaveClass(/theme-dark/);
 
       await app.appWindow.locator('#settings .tab-item', { hasText: 'General' }).click();

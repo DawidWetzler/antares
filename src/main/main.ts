@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, nativeImage, safeStorage } from 'electron';
+import { app, BrowserWindow, ipcMain, nativeImage, nativeTheme, safeStorage } from 'electron';
 import log from 'electron-log/main';
 import Store from 'electron-store';
 import windowStateKeeper from 'electron-window-state';
@@ -10,7 +10,13 @@ import { OsMenu, ShortcutRegister } from './libs/ShortcutRegister';
 Store.initRenderer();
 log.errorHandler.startCatching();
 const settingsStore = new Store({ name: 'settings' });
-const appTheme = settingsStore.get('application_theme');
+const applyThemeSource = () => {
+   nativeTheme.themeSource = settingsStore.get('application_theme', 'system') as typeof nativeTheme.themeSource;
+};
+const titleBarOverlay = () => ({
+   color: nativeTheme.shouldUseDarkColors ? '#3f3f3f' : '#fff',
+   symbolColor: nativeTheme.shouldUseDarkColors ? '#fff' : '#000'
+});
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const isMacOS = process.platform === 'darwin';
 const isLinux = process.platform === 'linux';
@@ -21,6 +27,8 @@ const gotTheLock = app.requestSingleInstanceLock();
 const isHeadless = process.env.ANTARES_E2E_HEADLESS === '1';
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+
+applyThemeSource();
 
 // global reference to mainWindow (necessary to prevent window from being garbage collected)
 let mainWindow: BrowserWindow;
@@ -47,13 +55,7 @@ async function createMainWindow () {
       autoHideMenuBar: true,
       frame: !isLinux,
       titleBarStyle: 'hidden',
-      titleBarOverlay: isWindows
-         ? {
-            color: appTheme === 'dark' ? '#3f3f3f' : '#fff',
-            symbolColor: appTheme === 'dark' ? '#fff' : '#000',
-            height: 30
-         }
-         : false,
+      titleBarOverlay: isWindows ? { ...titleBarOverlay(), height: 30 } : false,
       trafficLightPosition: isMacOS ? { x: 10, y: 8 } : undefined,
       backgroundColor: '#1d1d1d'
    });
@@ -85,13 +87,14 @@ async function createMainWindow () {
 ipcHandlers();
 
 ipcMain.on('refresh-theme-settings', () => {
-   const appTheme = settingsStore.get('application_theme');
-   if (isWindows && mainWindow) {
-      mainWindow.setTitleBarOverlay({
-         color: appTheme === 'dark' ? '#3f3f3f' : '#fff',
-         symbolColor: appTheme === 'dark' ? '#fff' : '#000'
-      });
-   }
+   applyThemeSource();
+   if (isWindows && mainWindow)
+      mainWindow.setTitleBarOverlay(titleBarOverlay());
+});
+
+nativeTheme.on('updated', () => {
+   if (isWindows && mainWindow)
+      mainWindow.setTitleBarOverlay(titleBarOverlay());
 });
 
 ipcMain.on('change-window-title', (_, title: string) => {
