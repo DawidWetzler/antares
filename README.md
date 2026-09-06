@@ -64,7 +64,25 @@ On Windows you can choose between downloading the app from Microsoft Store or do
 
 ### MacOS
 
-On macOS you can run `.dmg` distribution following [this guide](https://support.apple.com/guide/mac-help/mh40616/mac) to install apps from unknown developers.
+Pick the `.dmg` that matches your machine: `mac_arm64` for Apple Silicon, `mac_x64` for Intel.
+
+These builds are not signed with a distribution certificate and are not notarized, so
+Gatekeeper refuses them on first launch. To get past it:
+
+1. Drag `Antares.app` into `/Applications` and try to open it once. The attempt is what
+   puts the app in the next step.
+2. Open **System Settings -> Privacy & Security** and scroll to the bottom. Click
+   **Open Anyway** next to the message naming Antares, then confirm.
+
+On macOS 15 and later, Control-clicking the app and choosing **Open** no longer works for
+unnotarized apps. The button under Privacy & Security is the way through.
+
+If macOS calls the app damaged, it is the download that was flagged rather than the app.
+Remove the quarantine attribute and open it again:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/Antares.app
+```
 
 ## Download
 
