@@ -132,7 +132,7 @@
   },
   "dependencies": {
     "@fabio286/ssh2-promise": "~1.0.4-b",
-    "@faker-js/faker": "~6.1.2",
+    "@faker-js/faker": "~10.6.0",
     "@mdi/js": "7.4.47",
     "@vue/devtools-api": "8.2.1",
     "@vueuse/core": "14.4.0",
