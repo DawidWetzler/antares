@@ -42,7 +42,7 @@ jobs:
         run: flatpak-node-generator npm -r package-lock.json --electron-node-headers
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: generated-sources
           retention-days: 3

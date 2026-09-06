@@ -21,7 +21,7 @@ jobs:
           npm run build
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-build
           retention-days: 3
