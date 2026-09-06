@@ -9,7 +9,7 @@ jobs:
     steps:
       # Install flatpak-node-generator
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
@@ -25,10 +25,10 @@ jobs:
 
       # Install Antares
       - name: Check out Git repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 24
 
@@ -42,7 +42,7 @@ jobs:
         run: flatpak-node-generator npm -r package-lock.json --electron-node-headers
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: generated-sources
           retention-days: 3
