@@ -35,7 +35,7 @@ const openOutside = (link: string) => {
 
 const getChangelog = async () => {
    try {
-      const apiRes = await fetch(`https://api.github.com/repos/antares-sql/antares/releases/tags/v${appVersion}`, {
+      const apiRes = await fetch(`https://api.github.com/repos/DawidWetzler/antares/releases/tags/v${appVersion}`, {
          method: 'GET'
       });
 
