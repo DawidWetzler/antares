@@ -270,6 +270,26 @@
          @select-query="selectQuery"
          @close="isHistoryOpen = false"
       />
+      <ConfirmModal
+         v-if="isClearModal"
+         @confirm="confirmClear"
+         @hide="isClearModal = false"
+      >
+         <template #header>
+            <div class="d-flex">
+               <BaseIcon
+                  class="text-light mr-1"
+                  icon-name="mdiDeleteSweep"
+                  :size="24"
+               /> <span class="cut-text">{{ t('general.clear') }}</span>
+            </div>
+         </template>
+         <template #body>
+            <div class="mb-2">
+               {{ t('database.clearConfirm') }}
+            </div>
+         </template>
+      </ConfirmModal>
    </div>
 </template>
 
@@ -284,6 +304,7 @@ import { format } from 'sql-formatter';
 import { Component, computed, onBeforeUnmount, onMounted, Prop, Ref, ref, toRaw, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import ConfirmModal from '@/components/BaseConfirmModal.vue';
 import BaseIcon from '@/components/BaseIcon.vue';
 import BaseLoader from '@/components/BaseLoader.vue';
 import BaseSelect from '@/components/BaseSelect.vue';
@@ -357,6 +378,7 @@ const affectedCount = ref(null);
 const editorHeight = ref(200);
 const isQuerySaved = ref(false);
 const isHistoryOpen = ref(false);
+const isClearModal = ref(false);
 const debounceTimeout = ref(null);
 
 const workspace = computed(() => getWorkspace(props.connection.uid));
@@ -613,6 +635,10 @@ const selectQuery = (sql: string) => {
 };
 
 const clear = () => {
+   isClearModal.value = true;
+};
+
+const confirmClear = () => {
    if (queryEditor.value)
       queryEditor.value.editor.session.setValue('');
    clearTabData();

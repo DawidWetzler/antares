@@ -48,6 +48,7 @@ test.describe('query tab', () => {
 
       // the tab is still alive and can run a good query straight after
       await activeTab(appWindow).locator('.workspace-query-buttons button', { hasText: 'Clear' }).click();
+      await appWindow.locator('.modal.active button', { hasText: 'Confirm' }).click();
       await runQuery(appWindow, 'SELECT 42 AS answer');
       await expect(activeTab(appWindow).locator('.workspace-query-results .vscroll-holder .tr .cell-content'))
          .toHaveText(['42']);
@@ -74,5 +75,30 @@ test.describe('query tab', () => {
       await expect(tabs.nth(1)).toHaveClass(/active/);
       await expect(activeTab(appWindow).locator('.ace_content')).toContainText('WHERE id = 2');
       await expect(activeTab(appWindow).locator('.vscroll-holder .tr .cell-content')).toHaveText(['person-2']);
+   });
+
+   test('clearing asks for confirmation and only wipes the tab once confirmed', async () => {
+      await runQuery(appWindow, 'SELECT 42 AS answer');
+      await expect(activeTab(appWindow).locator('.workspace-query-results .vscroll-holder .tr .cell-content'))
+         .toHaveText(['42']);
+
+      const clearButton = activeTab(appWindow).locator('.workspace-query-buttons button', { hasText: 'Clear' });
+      const modal = appWindow.locator('.modal.active');
+
+      await clearButton.click();
+      await expect(modal, 'clear is confirmed, never immediate').toBeVisible();
+      await expect(activeTab(appWindow).locator('.ace_content')).toContainText('SELECT 42');
+
+      await modal.locator('button', { hasText: 'Cancel' }).click();
+      await expect(modal).toBeHidden();
+      await expect(activeTab(appWindow).locator('.ace_content')).toContainText('SELECT 42');
+      await expect(activeTab(appWindow).locator('.workspace-query-results .vscroll-holder .tr .cell-content'))
+         .toHaveText(['42']);
+
+      await clearButton.click();
+      await modal.locator('button', { hasText: 'Confirm' }).click();
+      await expect(modal).toBeHidden();
+      await expect(activeTab(appWindow).locator('.ace_content')).not.toContainText('SELECT 42');
+      await expect(activeTab(appWindow).locator('.workspace-query-results .vscroll-holder .tr')).toHaveCount(0);
    });
 });

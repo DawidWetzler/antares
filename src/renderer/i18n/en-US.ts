@@ -206,6 +206,7 @@ export const enUS = {
       duplicateTable: 'Duplicate table',
       deleteTable: 'Delete table',
       exportTable: 'Export table',
+      clearConfirm: 'Do you confirm to clear the query and its results?',
       emptyConfirm: 'Do you confirm to empty',
       thereAreNoIndexes: 'There are no indexes',
       thereAreNoForeign: 'There are no foreign keys',

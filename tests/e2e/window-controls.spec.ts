@@ -157,12 +157,15 @@ test.describe('query editor context menu', () => {
          ]]);
    });
 
-   test('choosing Clear empties the editor', async () => {
+   test('choosing Clear empties the editor once confirmed', async () => {
       await typeInAceEditor(tab, 'SELECT 42');
       await rightClickEditor();
       await expect.poll(() => poppedMenuLabels(electronApp)).toHaveLength(1);
 
       expect(await chooseMenuEntry(electronApp, 'Clear')).toBe('chosen');
+
+      await expect(tab.locator('.editor-query .ace_content')).toHaveText('SELECT 42');
+      await appWindow.locator('.modal.active button', { hasText: 'Confirm' }).click();
 
       await expect(tab.locator('.editor-query .ace_content')).toHaveText('');
    });
