@@ -1,4 +1,4 @@
-name: Create generated-rources.json
+name: Create generated-sources.json
 
 on: 
   workflow_dispatch: {}
@@ -25,10 +25,10 @@ jobs:
 
       # Install Antares
       - name: Check out Git repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 24
 
@@ -42,7 +42,7 @@ jobs:
         run: flatpak-node-generator npm -r package-lock.json --electron-node-headers
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: generated-sources
           retention-days: 3
