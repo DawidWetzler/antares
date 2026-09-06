@@ -10,5 +10,11 @@ updates:
       - dependency-type: "production"
     directory: "/"
     schedule:
-      interval: "monthly" 
-    target-branch: "develop"
+      interval: "monthly"
+
+  # Keeps the SHA-pinned third-party actions current: Dependabot rewrites both
+  # the SHA and the version comment when a new release ships.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"

@@ -14,7 +14,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install pipx
-        uses: CfirTsabari/actions-pipx@v1
+        uses: CfirTsabari/actions-pipx@d35b22ca4591edf63f63825e9dc62cb2d3707cc5 # v1.0.2
 
       - name: Install flatpak-node-generator
         run: |

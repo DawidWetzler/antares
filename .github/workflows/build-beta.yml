@@ -33,7 +33,7 @@ jobs:
         run: npm run build
 
       - name: Release
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
         with:
           artifacts: "build/*.AppImage,build/*.yml,build/*.deb,build/*.dmg,build/*.blockmap,build/*.zip,build/*.exe"
           allowUpdates: true
