@@ -8,6 +8,7 @@
 import * as assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
 
+import { likeContains } from 'common/libs/sqlUtils';
 import * as firebird from 'node-firebird';
 
 import { DEAD_PORT, FIREBIRD_DATABASE, FIREBIRD_HOST, FIREBIRD_PORT, firebirdClient, portOpen } from '../support/db';
@@ -356,5 +357,51 @@ describe('firebird / round trip', () => {
       other.destroy();
 
       assert.equal(rows[0].TITLE, 'Chimera');
+   });
+
+   /**
+    * `get-foreign-list` (src/main/ipc-handlers/tables.ts) is one of the three clients that
+    * fills the foreign-key dropdown, and the only one whose paging is `SELECT FIRST n`.
+    * Its search clause has to survive Firebird's stricter typing: `LOWER()` on an INTEGER
+    * needs the CAST, and the `ESCAPE` character keeps a typed `%` literal.
+    */
+   it('pages and filters the foreign key dropdown', async t => {
+      if (!await skipWithoutServer(t)) return;
+
+      const table = TABLE.toUpperCase();
+      const page = await client
+         .select('"ID" AS foreign_column')
+         .from(table)
+         .orderBy('foreign_column ASC')
+         .limit(1)
+         .run() as Result;
+
+      assert.equal(page.rows.length, 1, 'FIRST 1 must cap the page');
+      assert.equal(Number(page.rows[0].FOREIGN_COLUMN), 1);
+
+      const search = await client
+         .select('"ID" AS foreign_column')
+         .select('"TITLE" AS foreign_description')
+         .from(table)
+         .where(`(${likeContains('ID', 'ardv', 'firebird')} OR ${likeContains('TITLE', 'ardv', 'firebird')})`)
+         .orderBy('foreign_column ASC')
+         .limit(100)
+         .run() as Result;
+
+      assert.equal(search.rows.length, 1);
+      assert.equal(search.rows[0].FOREIGN_DESCRIPTION, 'Aardvark');
+
+      // A typed `%` is a literal, so it matches no title here rather than every one.
+      const wildcard = await client
+         .select('"ID" AS foreign_column')
+         .from(table)
+         .where(likeContains('TITLE', '%', 'firebird'))
+         .limit(100)
+         .run() as Result;
+
+      assert.equal(wildcard.rows.length, 0);
+
+      // The rows arrive with Firebird's upper-case keys, which is why the handler lowercases them.
+      assert.deepEqual(Object.keys(page.rows[0]), ['FOREIGN_COLUMN']);
    });
 });

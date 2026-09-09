@@ -306,6 +306,33 @@ export const escapeAndQuote = (val: string, client: ClientCode) => {
 };
 
 /**
+ * Quotes a value as a SQL string literal. Prefer this over `escapeAndQuote` above, whose
+ * backslash escape PostgreSQL rejects under the default standard_conforming_strings=on.
+ */
+export const quoteLiteral = (val: string, client: ClientCode): string => {
+   const escaped = ['mysql', 'maria'].includes(client)
+      ? val.replaceAll('\\', '\\\\').replaceAll('\'', '\'\'')
+      : val.replaceAll('\'', '\'\'');
+
+   return `'${escaped}'`;
+};
+
+/** LIKE escape character. Needs no escaping of its own in a string literal, in any client. */
+const LIKE_ESCAPE = '#';
+
+/**
+ * Server-side half of the `indexOf` filter a searchable BaseSelect applies to its labels,
+ * so a search that works client side keeps working. `CAST(col AS CHAR(255))` is the one
+ * spelling MySQL, PostgreSQL, SQLite and Firebird all accept on a numeric column.
+ */
+export const likeContains = (column: string, term: string, client: ClientCode): string => {
+   const { elementsWrapper: ew } = customizations[client];
+   const pattern = term.toLowerCase().replace(/[#%_]/g, char => `${LIKE_ESCAPE}${char}`);
+
+   return `LOWER(CAST(${ew}${column}${ew} AS CHAR(255))) LIKE ${quoteLiteral(`%${pattern}%`, client)} ESCAPE '${LIKE_ESCAPE}'`;
+};
+
+/**
  * Converts a value into a SQL string based on the field type and database type.
  *
  * @param {object} args - Arguments containing the value, database type, and field type.

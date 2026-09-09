@@ -1,7 +1,7 @@
 import * as assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { escapeAndQuote, formatJsonForSqlWhere, jsonToSqlInsert, objectToGeoJSON, valueToGeoJSON, valueToSqlString } from 'common/libs/sqlUtils';
+import { escapeAndQuote, formatJsonForSqlWhere, jsonToSqlInsert, likeContains, objectToGeoJSON, quoteLiteral, valueToGeoJSON, valueToSqlString } from 'common/libs/sqlUtils';
 import { Feature, FeatureCollection } from 'geojson';
 
 const DIALECTS = ['mysql', 'pg', 'sqlite'] as const;
@@ -350,5 +350,92 @@ describe('formatJsonForSqlWhere', () => {
 
    test('the JSON payload is escaped before interpolation', { todo: 'formatJsonForSqlWhere interpolates JSON.stringify output raw, so a quote in the data terminates the literal early' }, () => {
       assert.equal(formatJsonForSqlWhere({ a: 'O\'Brien' }, 'sqlite'), ' = \'{"a":"O\'\'Brien"}\'');
+   });
+});
+
+describe('quoteLiteral', () => {
+   test('wraps every dialect in the standard single quote', () => {
+      for (const c of [...DIALECTS, 'firebird', 'maria'] as const)
+         assert.equal(quoteLiteral('plain', c), '\'plain\'', `client ${c}`);
+   });
+
+   test('the single quote is doubled, never backslash-escaped', () => {
+      // Unlike escapeAndQuote above, this holds under PostgreSQL's default
+      // standard_conforming_strings=on, and MySQL accepts '' inside a '…' literal too.
+      for (const c of [...DIALECTS, 'firebird', 'maria'] as const)
+         assert.equal(quoteLiteral('O\'Brien', c), '\'O\'\'Brien\'', `client ${c}`);
+   });
+
+   test('the backslash is doubled only where the literal treats it as an escape', () => {
+      assert.equal(quoteLiteral('a\\b', 'mysql'), '\'a\\\\b\'');
+      assert.equal(quoteLiteral('a\\b', 'maria'), '\'a\\\\b\'');
+      assert.equal(quoteLiteral('a\\b', 'pg'), '\'a\\b\'');
+      assert.equal(quoteLiteral('a\\b', 'sqlite'), '\'a\\b\'');
+      assert.equal(quoteLiteral('a\\b', 'firebird'), '\'a\\b\'');
+   });
+
+   test('a backslash before a quote cannot escape its way out of the literal', () => {
+      // `\'` would leave the literal open on MySQL if the backslash were passed through.
+      assert.equal(quoteLiteral('a\\\'; DROP TABLE users --', 'mysql'), '\'a\\\\\'\'; DROP TABLE users --\'');
+      assert.equal(quoteLiteral('a\\\'; DROP TABLE users --', 'pg'), '\'a\\\'\'; DROP TABLE users --\'');
+   });
+
+   test('an empty string is still a literal', () => {
+      assert.equal(quoteLiteral('', 'pg'), '\'\'');
+   });
+});
+
+describe('likeContains', () => {
+   // src/main/ipc-handlers/tables.ts get-foreign-list: the server-side half of the
+   // case-insensitive `indexOf` filter BaseSelect applies to option labels.
+   test('one spelling that every dialect understands, only the identifier wrapper differs', () => {
+      assert.equal(likeContains('id', 'ada', 'mysql'), 'LOWER(CAST(`id` AS CHAR(255))) LIKE \'%ada%\' ESCAPE \'#\'');
+      assert.equal(likeContains('id', 'ada', 'pg'), 'LOWER(CAST("id" AS CHAR(255))) LIKE \'%ada%\' ESCAPE \'#\'');
+      assert.equal(likeContains('id', 'ada', 'sqlite'), 'LOWER(CAST("id" AS CHAR(255))) LIKE \'%ada%\' ESCAPE \'#\'');
+      assert.equal(likeContains('id', 'ada', 'firebird'), 'LOWER(CAST("id" AS CHAR(255))) LIKE \'%ada%\' ESCAPE \'#\'');
+   });
+
+   test('the term is wrapped in % on both sides, so it matches anywhere in the value', () => {
+      // NOT `LIKE 'term%'`: a prefix match would stop finding what the client-side
+      // filter finds today, which is a user-visible regression.
+      assert.match(likeContains('name', 'ada', 'pg'), /LIKE '%ada%'/);
+   });
+
+   test('the term is lowercased to meet the LOWER() on the column', () => {
+      assert.equal(likeContains('name', 'AdA', 'pg'), 'LOWER(CAST("name" AS CHAR(255))) LIKE \'%ada%\' ESCAPE \'#\'');
+   });
+
+   test('a wildcard the user typed stays a literal character', () => {
+      assert.equal(likeContains('name', '50%', 'pg'), 'LOWER(CAST("name" AS CHAR(255))) LIKE \'%50#%%\' ESCAPE \'#\'');
+      assert.equal(likeContains('name', 'a_b', 'pg'), 'LOWER(CAST("name" AS CHAR(255))) LIKE \'%a#_b%\' ESCAPE \'#\'');
+   });
+
+   test('the escape character itself is escaped', () => {
+      assert.equal(likeContains('name', '#', 'pg'), 'LOWER(CAST("name" AS CHAR(255))) LIKE \'%##%\' ESCAPE \'#\'');
+      assert.equal(likeContains('name', '#_', 'pg'), 'LOWER(CAST("name" AS CHAR(255))) LIKE \'%###_%\' ESCAPE \'#\'');
+   });
+
+   test('a quote in the term cannot terminate the literal', () => {
+      assert.equal(likeContains('name', 'o\'brien', 'pg'), 'LOWER(CAST("name" AS CHAR(255))) LIKE \'%o\'\'brien%\' ESCAPE \'#\'');
+   });
+
+   test('an injection attempt stays one string literal', () => {
+      const term = '\' OR 1=1 --';
+      for (const c of [...DIALECTS, 'firebird'] as const) {
+         const clause = likeContains('name', term, c);
+         // Exactly one literal: the opening quote, the doubled quote from the term,
+         // the closing quote, and the two around the escape character.
+         assert.equal((clause.match(/'/g) || []).length, 6, `client ${c}`);
+         assert.match(clause, /LIKE '%'' or 1=1 --%' ESCAPE '#'$/, `client ${c}`);
+      }
+   });
+
+   test('a backslash-quote injection attempt is neutralised on MySQL too', () => {
+      assert.equal(likeContains('name', '\\\' OR 1=1 --', 'mysql'),
+         'LOWER(CAST(`name` AS CHAR(255))) LIKE \'%\\\\\'\' or 1=1 --%\' ESCAPE \'#\'');
+   });
+
+   test('an empty term still produces a valid match-everything clause', () => {
+      assert.equal(likeContains('name', '', 'pg'), 'LOWER(CAST("name" AS CHAR(255))) LIKE \'%%\' ESCAPE \'#\'');
    });
 });

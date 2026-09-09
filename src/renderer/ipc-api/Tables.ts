@@ -91,6 +91,10 @@ export default class {
       table: string;
       column: string;
       description: string | false;
+      search?: string;
+      limit?: number;
+      /** Always returned, even when it falls outside the page. */
+      value?: string | number;
    }): Promise<IpcResponse> {
       return ipcRenderer.invoke('get-foreign-list', unproxify(params));
    }

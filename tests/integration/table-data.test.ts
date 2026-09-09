@@ -6,8 +6,10 @@
 import * as assert from 'node:assert/strict';
 import { after, before, describe, it, TestContext } from 'node:test';
 
+import customizations from 'common/customizations';
 import { FLOAT, LONG_TEXT, NUMBER, TEXT } from 'common/fieldTypes';
-import { sqlEscaper } from 'common/libs/sqlUtils';
+import { ClientCode } from 'common/interfaces/antares';
+import { likeContains, quoteLiteral, sqlEscaper } from 'common/libs/sqlUtils';
 
 import { Dialect, DIALECTS, Fixture, openFixture, requireServer } from '../support/db';
 
@@ -275,3 +277,205 @@ describe('table data / builder state', () => {
       }
    });
 });
+
+/**
+ * `get-foreign-list` (src/main/ipc-handlers/tables.ts): one page of the referenced table
+ * behind an editable foreign-key cell, optionally narrowed by what the user typed.
+ * The handler builds exactly this chain.
+ */
+const foreignList = async (fx: Fixture, args: {
+   column: string;
+   description?: string;
+   search?: string;
+   limit: number;
+}) => {
+   const client = fx.dialect as ClientCode;
+   const { elementsWrapper: ew } = customizations[client];
+   const query = fx.client
+      .select(`${ew}${args.column}${ew} AS foreign_column`)
+      .schema(fx.schema)
+      .from('authors')
+      .orderBy('foreign_column ASC')
+      .limit(args.limit);
+
+   if (args.description)
+      query.select(`LEFT(${ew}${args.description}${ew}, 20) AS foreign_description`);
+
+   if (args.search) {
+      const clauses = [likeContains(args.column, args.search, client)];
+      if (args.description) clauses.push(likeContains(args.description, args.search, client));
+      query.where(`(${clauses.join(' OR ')})`);
+   }
+
+   const { rows } = await query.run<Row>();
+   return rows;
+};
+
+/** The second query the handler runs so the value the cell holds is never missing from the page. */
+const foreignRow = async (fx: Fixture, args: { column: string; description?: string; value: string | number }) => {
+   const client = fx.dialect as ClientCode;
+   const { elementsWrapper: ew } = customizations[client];
+   const query = fx.client
+      .select(`${ew}${args.column}${ew} AS foreign_column`)
+      .schema(fx.schema)
+      .from('authors')
+      .where(`${ew}${args.column}${ew} = ${typeof args.value === 'number' ? args.value : quoteLiteral(args.value, client)}`)
+      .limit(1);
+
+   if (args.description)
+      query.select(`LEFT(${ew}${args.description}${ew}, 20) AS foreign_description`);
+
+   const { rows } = await query.run<Row>();
+   return rows;
+};
+
+for (const dialect of DIALECTS) {
+   describe(`foreign key list / ${dialect}`, () => {
+      let fx: Fixture;
+
+      before(async t => {
+         if (!await requireServer(t as TestContext, dialect)) return;
+         fx = await openFixture(dialect, `fklist_${dialect}`);
+         // 3 seeded authors is fewer than any page, so the referenced table needs to be
+         // long enough for a page to end before it does. `Zoe%_'s` carries the three
+         // characters a naive pattern would treat as syntax.
+         const extra = ['Bartholomew', 'Cassandra', 'Demetrius', 'Evangelina', 'Fitzgerald', 'Gwendolyn', 'Zoe%_\'s'];
+         for (const name of extra)
+            await fx.exec(`INSERT INTO ${fx.t('authors')} (name, note) VALUES (${quoteLiteral(name, dialect as ClientCode)}, ${quoteLiteral(`note ${name}`, dialect as ClientCode)})`);
+      });
+
+      after(async () => {
+         if (fx) await fx.drop();
+      });
+
+      it('returns one page, not the whole referenced table', async t => {
+         if (!await requireServer(t, dialect)) return;
+
+         const rows = await foreignList(fx, { column: 'id', limit: 4 });
+
+         assert.equal(rows.length, 4);
+         assert.deepEqual(rows.map(r => Number(r.foreign_column)), [1, 2, 3, 4]);
+         assert.ok(await exactCount(fx, 'authors') > 4, 'the fixture must be longer than the page');
+      });
+
+      it('a search term matches anywhere in the key, not just at the start', async t => {
+         if (!await requireServer(t, dialect)) return;
+
+         // `Bartholomew` is author 4, so "4" only appears in the middle of nothing --
+         // this is the description column standing in for a mid-value match.
+         const rows = await foreignList(fx, { column: 'name', search: 'andra', limit: 100 });
+
+         assert.deepEqual(rows.map(r => r.foreign_column), ['Cassandra']);
+      });
+
+      it('a search term is case-insensitive, as the client-side filter is', async t => {
+         if (!await requireServer(t, dialect)) return;
+
+         const rows = await foreignList(fx, { column: 'name', search: 'ANDRA', limit: 100 });
+
+         assert.deepEqual(rows.map(r => r.foreign_column), ['Cassandra']);
+      });
+
+      it('a numeric key is searchable as text', async t => {
+         if (!await requireServer(t, dialect)) return;
+
+         // 10 authors: only id 10 contains a "0".
+         const rows = await foreignList(fx, { column: 'id', search: '0', limit: 100 });
+
+         assert.deepEqual(rows.map(r => Number(r.foreign_column)), [10]);
+      });
+
+      it('a term matching nothing returns an empty page rather than an error', async t => {
+         if (!await requireServer(t, dialect)) return;
+
+         const rows = await foreignList(fx, { column: 'name', search: 'nobodyhasthisname', limit: 100 });
+
+         assert.deepEqual(rows, []);
+      });
+
+      it('a wildcard the user typed matches literally, not as a wildcard', async t => {
+         if (!await requireServer(t, dialect)) return;
+
+         // Only `Zoe%_'s` contains a literal `%`; if it leaked through as a wildcard the
+         // pattern would be `%%%` and every row would come back.
+         const percent = await foreignList(fx, { column: 'name', search: '%', limit: 100 });
+         assert.deepEqual(percent.map(r => r.foreign_column), ['Zoe%_\'s']);
+
+         const underscore = await foreignList(fx, { column: 'name', search: 'e%_', limit: 100 });
+         assert.deepEqual(underscore.map(r => r.foreign_column), ['Zoe%_\'s']);
+      });
+
+      it('a quote in the term cannot alter the query', async t => {
+         if (!await requireServer(t, dialect)) return;
+
+         const rows = await foreignList(fx, { column: 'name', search: '\'s', limit: 100 });
+         assert.deepEqual(rows.map(r => r.foreign_column), ['Zoe%_\'s']);
+
+         // The classic tautology: if it were interpolated raw it would either error or
+         // match every row. It has to match the one row whose name contains that text.
+         const injection = await foreignList(fx, { column: 'name', search: '\' OR 1=1 --', limit: 100 });
+         assert.deepEqual(injection, []);
+         assert.equal(await exactCount(fx, 'authors'), 10, 'the injection attempt must not have changed the table');
+      });
+
+      it('the value the cell holds is readable by equality even when the page has moved past it', async t => {
+         if (!await requireServer(t, dialect)) return;
+
+         const page = await foreignList(fx, { column: 'id', limit: 3 });
+         assert.equal(page.some(r => Number(r.foreign_column) === 10), false, 'id 10 must be outside the page');
+
+         const rows = await foreignRow(fx, { column: 'id', value: 10 });
+         assert.deepEqual(rows.map(r => Number(r.foreign_column)), [10]);
+      });
+
+      it('a string value with a quote in it is still readable by equality', async t => {
+         if (!await requireServer(t, dialect)) return;
+
+         const rows = await foreignRow(fx, { column: 'name', value: 'Zoe%_\'s' });
+
+         assert.deepEqual(rows.map(r => r.foreign_column), ['Zoe%_\'s']);
+      });
+
+      it('a value that is not in the referenced table returns nothing, it does not throw', async t => {
+         if (!await requireServer(t, dialect)) return;
+
+         const rows = await foreignRow(fx, { column: 'id', value: 999999 });
+
+         assert.deepEqual(rows, []);
+      });
+
+      it('the description column comes back beside the key', {
+         todo: dialect === 'sqlite' ? 'get-foreign-list projects LEFT(<description>, 20), and SQLite has no LEFT()' : undefined
+      }, async t => {
+         if (!await requireServer(t, dialect)) return;
+
+         const rows = await foreignList(fx, { column: 'id', description: 'name', search: 'andra', limit: 100 });
+
+         assert.equal(rows.length, 1);
+         assert.equal(Number(rows[0].foreign_column), 5);
+         assert.equal(rows[0].foreign_description, 'Cassandra');
+      });
+
+      it('the search covers the description too, or typing a name would stop finding its row', {
+         todo: dialect === 'sqlite' ? 'get-foreign-list projects LEFT(<description>, 20), and SQLite has no LEFT()' : undefined
+      }, async t => {
+         if (!await requireServer(t, dialect)) return;
+
+         // The label BaseSelect filters client side is `<key> - <description>`, so a term
+         // found only in the description has to narrow the page server side as well.
+         const rows = await foreignList(fx, { column: 'id', description: 'note', search: 'note gwen', limit: 100 });
+
+         assert.equal(rows.length, 1);
+         assert.equal(rows[0].foreign_description, 'note Gwendolyn');
+      });
+
+      it('a search term never widens the page past the limit', async t => {
+         if (!await requireServer(t, dialect)) return;
+
+         // "a" is in most of the fixture names; the limit still caps what comes back.
+         const rows = await foreignList(fx, { column: 'name', search: 'a', limit: 2 });
+
+         assert.equal(rows.length, 2);
+      });
+   });
+}

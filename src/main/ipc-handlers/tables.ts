@@ -4,11 +4,14 @@ import * as antares from 'common/interfaces/antares';
 import { InsertRowsParams } from 'common/interfaces/tableApis';
 import { dateToString, parseDate } from 'common/libs/dateUtils';
 import { fakerCustom } from 'common/libs/fakerCustom';
-import { formatJsonForSqlWhere, sqlEscaper } from 'common/libs/sqlUtils';
+import { formatJsonForSqlWhere, likeContains, quoteLiteral, sqlEscaper } from 'common/libs/sqlUtils';
 import { ipcMain } from 'electron';
 import * as fs from 'fs';
 
 import { validateSender } from '../libs/misc/validateSender';
+
+/** Matches BaseSelect's maxVisibleOptions default. */
+const FOREIGN_LIST_LIMIT = 100;
 
 export default (connections: Record<string, antares.Client>) => {
    ipcMain.handle('get-table-columns', async (event, params) => {
@@ -439,34 +442,61 @@ export default (connections: Record<string, antares.Client>) => {
       }
    });
 
-   ipcMain.handle('get-foreign-list', async (event, { uid, schema, table, column, description }) => {
+   ipcMain.handle('get-foreign-list', async (event, { uid, schema, table, column, description, search, limit, value }) => {
       if (!validateSender(event.senderFrame)) return { status: 'error', response: 'Unauthorized process' };
-      const { elementsWrapper: ew } = customizations[connections[uid]._client];
+      const client = connections[uid]._client;
+      const { elementsWrapper: ew } = customizations[client];
 
-      try {
+      const lowercaseKeys = (rows: Record<string, string>[]) => rows.map(row => {
+         const remappedRow: Record<string, string> = {};
+
+         for (const key in row)
+            remappedRow[key.toLowerCase()] = row[key];// Thanks Firebird -.-
+
+         return remappedRow;
+      });
+
+      const projection = () => {
          const query = connections[uid]
             .select(`${ew}${column}${ew} AS foreign_column`)
             .schema(schema)
-            .from(table)
-            .orderBy('foreign_column ASC');
+            .from(table);
 
          if (description)
             query.select(`LEFT(${ew}${description}${ew}, 20) AS foreign_description`);
 
-         const results = await query.run<Record<string, string>>();
+         return query;
+      };
 
-         const parsedResults: Record<string, string>[] = [];
+      try {
+         const query = projection()
+            .orderBy('foreign_column ASC')
+            .limit(limit > 0 ? limit : FOREIGN_LIST_LIMIT);
 
-         for (const row of results.rows) {
-            const remappedRow: Record<string, string> = {};
+         // Filtering has to happen here, or a value outside the page becomes unreachable.
+         if (search) {
+            const clauses = [likeContains(column, search, client)];
 
-            for (const key in row)
-               remappedRow[key.toLowerCase()] = row[key];// Thanks Firebird -.-
+            if (description)
+               clauses.push(likeContains(description, search, client));
 
-            parsedResults.push(remappedRow);
+            query.where(`(${clauses.join(' OR ')})`);
          }
 
-         results.rows = parsedResults;
+         const results = await query.run<Record<string, string>>();
+         results.rows = lowercaseKeys(results.rows);
+
+         // Keeps the edited cell's own value selectable, with its description, when the page
+         // has moved past it or a search filtered it out.
+         if (value !== null && value !== undefined && !results.rows.some(row => `${row.foreign_column}` === `${value}`)) {
+            const literal = typeof value === 'number' ? value : quoteLiteral(String(value), client);
+            const current = await projection()
+               .where(`${ew}${column}${ew} = ${literal}`)
+               .limit(1)
+               .run<Record<string, string>>();
+
+            results.rows = [...lowercaseKeys(current.rows), ...results.rows];
+         }
 
          return { status: 'success', response: results };
       }

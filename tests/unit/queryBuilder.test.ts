@@ -1,6 +1,11 @@
 import * as assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
+import customizations from 'common/customizations';
+import { ClientCode } from 'common/interfaces/antares';
+import { likeContains, quoteLiteral } from 'common/libs/sqlUtils';
+
+import { FirebirdSQLClient } from '@/../main/libs/clients/FirebirdSQLClient';
 import { MySQLClient } from '@/../main/libs/clients/MySQLClient';
 import { PostgreSQLClient } from '@/../main/libs/clients/PostgreSQLClient';
 import { SQLiteClient } from '@/../main/libs/clients/SQLiteClient';
@@ -10,14 +15,15 @@ const noop = () => undefined;
 const make = {
    mysql: () => new MySQLClient({ client: 'mysql', params: { schema: '', readonly: false }, logger: noop }),
    pg: () => new PostgreSQLClient({ client: 'pg', params: { schema: '', readonly: false }, logger: noop }),
-   sqlite: () => new SQLiteClient({ client: 'sqlite', params: { databasePath: ':memory:', readonly: false }, logger: noop })
+   sqlite: () => new SQLiteClient({ client: 'sqlite', params: { databasePath: ':memory:', readonly: false }, logger: noop }),
+   firebird: () => new FirebirdSQLClient({ client: 'firebird', params: { host: '', port: 0, user: '', password: '', database: '', readonly: false }, logger: noop })
 };
 type Dialect = keyof typeof make;
-const DIALECTS = Object.keys(make) as Dialect[];
+const DIALECTS: Dialect[] = ['mysql', 'pg', 'sqlite'];
 
-/** Runs `build` on a fresh client per dialect and asserts the exact SQL. */
-const each = (expected: Record<Dialect, string>, build: (c: ReturnType<typeof make[Dialect]>) => string) => {
-   for (const d of DIALECTS)
+/** Runs `build` on a fresh client per listed dialect and asserts the exact SQL. */
+const each = (expected: Partial<Record<Dialect, string>>, build: (c: ReturnType<typeof make[Dialect]>) => string) => {
+   for (const d of Object.keys(expected) as Dialect[])
       assert.equal(build(make[d]()), expected[d], `client ${d}`);
 };
 
@@ -279,5 +285,65 @@ describe('query builder - state handling', () => {
       assert.throws(() => bare.getSQL(), /must implement the "getSQL" method/);
       assert.throws(() => bare.raw('SELECT 1'), /must implement the "raw" method/);
       assert.throws(() => bare.getDatabases(), /not implemented/);
+   });
+});
+
+describe('query builder - foreign key list', () => {
+   // src/main/ipc-handlers/tables.ts get-foreign-list: the dropdown behind an editable
+   // foreign-key cell. Firebird is in this table because it is one of the three clients
+   // that report key usage and therefore actually fill that dropdown.
+   type Client = ReturnType<typeof make[Dialect]>;
+   const ewOf = (c: Client) => customizations[(c as unknown as { _client: ClientCode })._client].elementsWrapper;
+
+   /** The projection the handler builds, description column included. */
+   const project = (c: Client) => {
+      const ew = ewOf(c);
+      return c
+         .select(`${ew}id${ew} AS foreign_column`)
+         .select(`LEFT(${ew}name${ew}, 20) AS foreign_description`)
+         .schema('sakila')
+         .from('actor');
+   };
+
+   test('one page, never the whole referenced table', () => {
+      each({
+         mysql: 'SELECT `id` AS foreign_column, LEFT(`name`, 20) AS foreign_description FROM `sakila`.`actor` ORDER BY foreign_column ASC LIMIT 100 ',
+         pg: 'SELECT "id" AS foreign_column, LEFT("name", 20) AS foreign_description FROM "sakila"."actor" ORDER BY foreign_column ASC LIMIT 100 ',
+         sqlite: 'SELECT "id" AS foreign_column, LEFT("name", 20) AS foreign_description FROM "sakila"."actor" ORDER BY foreign_column ASC LIMIT 100 ',
+         firebird: 'SELECT FIRST 100 "id" AS foreign_column, LEFT("name", 20) AS foreign_description FROM "actor" ORDER BY foreign_column ASC  '
+      }, c => project(c).orderBy('foreign_column ASC').limit(100).getSQL());
+   });
+
+   test('a search term filters on the key and on the description, matching anywhere', () => {
+      each({
+         mysql: 'SELECT `id` AS foreign_column, LEFT(`name`, 20) AS foreign_description FROM `sakila`.`actor` WHERE (LOWER(CAST(`id` AS CHAR(255))) LIKE \'%pen%\' ESCAPE \'#\' OR LOWER(CAST(`name` AS CHAR(255))) LIKE \'%pen%\' ESCAPE \'#\') ORDER BY foreign_column ASC LIMIT 100 ',
+         pg: 'SELECT "id" AS foreign_column, LEFT("name", 20) AS foreign_description FROM "sakila"."actor" WHERE (LOWER(CAST("id" AS CHAR(255))) LIKE \'%pen%\' ESCAPE \'#\' OR LOWER(CAST("name" AS CHAR(255))) LIKE \'%pen%\' ESCAPE \'#\') ORDER BY foreign_column ASC LIMIT 100 ',
+         firebird: 'SELECT FIRST 100 "id" AS foreign_column, LEFT("name", 20) AS foreign_description FROM "actor" WHERE (LOWER(CAST("id" AS CHAR(255))) LIKE \'%pen%\' ESCAPE \'#\' OR LOWER(CAST("name" AS CHAR(255))) LIKE \'%pen%\' ESCAPE \'#\') ORDER BY foreign_column ASC  '
+      }, c => {
+         const client = (c as unknown as { _client: ClientCode })._client;
+         return project(c)
+            .where(`(${likeContains('id', 'pen', client)} OR ${likeContains('name', 'pen', client)})`)
+            .orderBy('foreign_column ASC')
+            .limit(100)
+            .getSQL();
+      });
+   });
+
+   test('the row the cell currently holds is read by equality, with its description', () => {
+      each({
+         mysql: 'SELECT `id` AS foreign_column, LEFT(`name`, 20) AS foreign_description FROM `sakila`.`actor` WHERE `id` = 42 LIMIT 1 ',
+         pg: 'SELECT "id" AS foreign_column, LEFT("name", 20) AS foreign_description FROM "sakila"."actor" WHERE "id" = 42 LIMIT 1 ',
+         firebird: 'SELECT FIRST 1 "id" AS foreign_column, LEFT("name", 20) AS foreign_description FROM "actor" WHERE "id" = 42  '
+      }, c => {
+         const ew = ewOf(c);
+         return project(c).where(`${ew}id${ew} = 42`).limit(1).getSQL();
+      });
+   });
+
+   test('a string current value is quoted, and a quote in it cannot break out', () => {
+      assert.equal(
+         make.pg().select('x').from('t').where(`"code" = ${quoteLiteral('o\'brien', 'pg')}`).getSQL(),
+         'SELECT x FROM "t" WHERE "code" = \'o\'\'brien\' '
+      );
    });
 });

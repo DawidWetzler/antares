@@ -22,6 +22,7 @@
             spellcheck="false"
             :tabindex="tabindex"
             :value="searchText"
+            :placeholder="currentOptionLabel"
             @input="searchText = $event.target.value"
             @focus.prevent="!isOpen ? activate() : false"
             @blur.prevent="handleBlurEvent()"
@@ -136,9 +137,15 @@ export default defineComponent({
       maxVisibleOptions: {
          type: Number,
          default: 100
+      },
+      // Off when the parent answers `search-change` itself: its labels can be lossier than
+      // the rows it matched on, so filtering them again here would drop legitimate hits.
+      internalSearch: {
+         type: Boolean,
+         default: true
       }
    },
-   emits: ['select', 'open', 'close', 'update:modelValue', 'change', 'blur'],
+   emits: ['select', 'open', 'close', 'update:modelValue', 'change', 'blur', 'search-change'],
    setup (props, { emit }) {
       const hightlightedIndex = ref(0);
       const isOpen = ref(false);
@@ -206,7 +213,7 @@ export default defineComponent({
       const filteredOptions = computed(() => {
          const searchTerms = (searchText.value || '').toLowerCase().trim();
 
-         let options = searchTerms
+         let options = searchTerms && props.internalSearch
             ? flattenOptions.value.filter(opt => opt.$type === 'group' || opt.label.trim().toLowerCase().indexOf(searchTerms) !== -1)
             : flattenOptions.value;
 
@@ -243,6 +250,10 @@ export default defineComponent({
             hightlightedIndex.value = options.length ? options.length -1 : 0;
          else
             hightlightedIndex.value = 0;
+      });
+
+      watch(searchText, (val) => {
+         emit('search-change', val);
       });
 
       watch(() => props.modelValue, (val) => {
@@ -432,6 +443,11 @@ export default defineComponent({
     color: currentcolor;
     max-width: 100%;
     width: 100%;
+
+    &::placeholder {
+      color: currentcolor;
+      opacity: 0.6;
+    }
   }
 
   &__item-text {
