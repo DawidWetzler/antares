@@ -18,20 +18,15 @@ import 'ace-builds/webpack-resolver';
 
 import { uidGen } from 'common/libs/uidGen';
 import { storeToRefs } from 'pinia';
-import { computed, onMounted, Prop, Ref, ref, toRef, watch } from 'vue';
+import { computed, onMounted, Prop, Ref, ref, watch } from 'vue';
 
 import Tables from '@/ipc-api/Tables';
-import { useApplicationStore } from '@/stores/application';
 import { useSettingsStore } from '@/stores/settings';
 import { Workspace } from '@/stores/workspaces';
 
 const editor: Ref<ace.Ace.Editor> = ref(null);
-const applicationStore = useApplicationStore();
 const settingsStore = useSettingsStore();
 
-const { setBaseCompleters } = applicationStore;
-
-const { baseCompleter } = storeToRefs(applicationStore);
 const {
    editorTheme,
    editorFontSize,
@@ -63,10 +58,9 @@ const emit = defineEmits(['update:modelValue']);
 
 const cursorPosition = ref(0);
 const lastTableFields = ref([]);
-const customCompleter = ref([]);
 const id = ref(uidGen());
-const lastSchema: Ref<string> = ref(null);
 const fields: Ref<{name: string; type: string}[]> = ref([]);
+let editorCompleters: ace.Ace.Completer[] = [];
 
 const tables = computed(() => {
    return props.workspace
@@ -196,29 +190,28 @@ const tableFieldsCompleter = computed(() => {
    };
 });
 
-const setCustomCompleter = () => {
-   editor.value.completers.push({
-      getCompletions: (editor, session, pos, prefix, callback: (err: null, response: ace.Ace.Completion[]) => void) => {
-         const completions: ace.Ace.Completion[] = [];
-         [
-            ...tables.value,
-            ...triggers.value,
-            ...procedures.value,
-            ...functions.value,
-            ...schedulers.value,
-            ...fields.value
-         ].forEach(el => {
-            completions.push({
-               value: el.name,
-               meta: el.type,
-               score: 1000
-            });
+// Never push into `editor.completers`: ace hands every editor in the window the same
+// module-level array (`libs/ext-language_tools.js:2152`), so a push grows every other
+// editor's list too, for the life of the window.
+const schemaCompleter: ace.Ace.Completer = {
+   getCompletions: (editor, session, pos, prefix, callback: (err: null, response: ace.Ace.Completion[]) => void) => {
+      const completions: ace.Ace.Completion[] = [];
+      [
+         ...tables.value,
+         ...triggers.value,
+         ...procedures.value,
+         ...functions.value,
+         ...schedulers.value,
+         ...fields.value
+      ].forEach(el => {
+         completions.push({
+            value: el.name,
+            meta: el.type,
+            score: 1000
          });
-         callback(null, completions);
-      }
-   });
-
-   customCompleter.value = editor.value.completers;
+      });
+      callback(null, completions);
+   }
 };
 
 watch(() => props.modelValue, () => {
@@ -246,9 +239,6 @@ watch(() => tablesInQuery.value.length, () => {
    });
 
    fields.value = localFields;
-   setTimeout(() => {
-      setCustomCompleter();
-   }, 100);
 });
 
 watch(editorTheme, () => {
@@ -281,10 +271,8 @@ watch(lineWrap, () => {
 });
 
 watch(() => props.isSelected, () => {
-   if (props.isSelected) {
-      lastSchema.value = props.schema;
+   if (props.isSelected)
       editor.value.resize();
-   }
 });
 
 watch(() => props.height, () => {
@@ -292,15 +280,6 @@ watch(() => props.height, () => {
       editor.value.resize();
    }, 20);
 });
-
-watch(lastSchema, () => {
-   if (editor.value) {
-      editor.value.completers = baseCompleter.value.map(el => Object.assign({}, el));
-      setCustomCompleter();
-   }
-});
-
-lastSchema.value = toRef(props, 'schema').value;
 
 onMounted(() => {
    editor.value = ace.edit(`editor-${id.value}`, {
@@ -320,10 +299,8 @@ onMounted(() => {
       fontSize: sizes[editorFontSize.value]
    });
 
-   if (!baseCompleter.value.length)
-      setBaseCompleters(editor.value.completers.map(el => Object.assign({}, el)));
-
-   setCustomCompleter();
+   editorCompleters = [...editor.value.completers, schemaCompleter];
+   editor.value.completers = editorCompleters;
 
    editor.value.commands.on('afterExec', (e: { args: string; command: { name: string } }) => {
       if (['insertstring', 'backspace', 'del'].includes(e.command.name)) {
@@ -346,13 +323,13 @@ onMounted(() => {
                   }).catch(console.error);
                }
                else
-                  editor.value.completers = customCompleter.value;
+                  editor.value.completers = editorCompleters;
             }
             else
-               editor.value.completers = customCompleter.value;
+               editor.value.completers = editorCompleters;
          }
          else
-            editor.value.completers = customCompleter.value;
+            editor.value.completers = editorCompleters;
       }
    });
 
