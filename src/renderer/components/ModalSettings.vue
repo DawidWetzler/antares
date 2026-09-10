@@ -545,6 +545,7 @@ const editorThemes = computed(() => [
    {
       group: t('application.light'),
       themes: [
+         { code: 'catppuccin_latte', name: 'Catppuccin Latte' },
          { code: 'chrome', name: 'Chrome' },
          { code: 'clouds', name: 'Clouds' },
          { code: 'crimson_editor', name: 'Crimson Editor' },
@@ -566,6 +567,7 @@ const editorThemes = computed(() => [
       group: t('application.dark'),
       themes: [
          { code: 'ambiance', name: 'Ambiance' },
+         { code: 'catppuccin_mocha', name: 'Catppuccin Mocha' },
          { code: 'chaos', name: 'Chaos' },
          { code: 'clouds_midnight', name: 'Clouds Midnight' },
          { code: 'dracula', name: 'Dracula' },

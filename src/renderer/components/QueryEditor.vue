@@ -13,6 +13,7 @@
 /* eslint-disable simple-import-sort/imports */
 import * as ace from 'ace-builds';
 import '../libs/ext-language_tools';
+import '../libs/theme-catppuccin';
 import 'ace-builds/webpack-resolver';
 /* eslint-enable simple-import-sort/imports */
 
