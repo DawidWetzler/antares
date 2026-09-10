@@ -8,7 +8,6 @@
 
    Registered through the `ace` global that `ace-builds` installs, the same way
    `ext-language_tools.js` is, which is why every importer must import 'ace-builds' first.
-   Only Latte and Mocha are built; Frappé and Macchiato are one more `defineFlavour` call each.
 */
 
 const cssText = (cssClass, palette) => `
@@ -185,6 +184,50 @@ defineFlavour('latte', false, {
    surface0: '#ccd0da',
    base: '#eff1f5',
    mantle: '#e6e9ef'
+});
+
+defineFlavour('frappe', true, {
+   rosewater: '#f2d5cf',
+   maroon: '#ea999c',
+   peach: '#ef9f76',
+   yellow: '#e5c890',
+   green: '#a6d189',
+   teal: '#81c8be',
+   sky: '#99d1db',
+   blue: '#8caaee',
+   mauve: '#ca9ee6',
+   red: '#e78284',
+   text: '#c6d0f5',
+   overlay2: '#949cbb',
+   overlay1: '#838ba7',
+   overlay0: '#737994',
+   surface2: '#626880',
+   surface1: '#51576d',
+   surface0: '#414559',
+   base: '#303446',
+   mantle: '#292c3c'
+});
+
+defineFlavour('macchiato', true, {
+   rosewater: '#f4dbd6',
+   maroon: '#ee99a0',
+   peach: '#f5a97f',
+   yellow: '#eed49f',
+   green: '#a6da95',
+   teal: '#8bd5ca',
+   sky: '#91d7e3',
+   blue: '#8aadf4',
+   mauve: '#c6a0f6',
+   red: '#ed8796',
+   text: '#cad3f5',
+   overlay2: '#939ab7',
+   overlay1: '#8087a2',
+   overlay0: '#6e738d',
+   surface2: '#5b6078',
+   surface1: '#494d64',
+   surface0: '#363a4f',
+   base: '#24273a',
+   mantle: '#1e2030'
 });
 
 defineFlavour('mocha', true, {

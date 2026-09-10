@@ -567,6 +567,8 @@ const editorThemes = computed(() => [
       group: t('application.dark'),
       themes: [
          { code: 'ambiance', name: 'Ambiance' },
+         { code: 'catppuccin_frappe', name: 'Catppuccin Frappé' },
+         { code: 'catppuccin_macchiato', name: 'Catppuccin Macchiato' },
          { code: 'catppuccin_mocha', name: 'Catppuccin Mocha' },
          { code: 'chaos', name: 'Chaos' },
          { code: 'clouds_midnight', name: 'Clouds Midnight' },
