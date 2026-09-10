@@ -28,7 +28,7 @@ const editor: Ref<ace.Ace.Editor> = ref(null);
 const settingsStore = useSettingsStore();
 
 const {
-   editorTheme,
+   resolvedEditorTheme,
    editorFontSize,
    autoComplete,
    lineWrap
@@ -241,9 +241,9 @@ watch(() => tablesInQuery.value.length, () => {
    fields.value = localFields;
 });
 
-watch(editorTheme, () => {
+watch(resolvedEditorTheme, () => {
    if (editor.value)
-      editor.value.setTheme(`ace/theme/${editorTheme.value}`);
+      editor.value.setTheme(`ace/theme/${resolvedEditorTheme.value}`);
 });
 
 watch(editorFontSize, () => {
@@ -284,7 +284,7 @@ watch(() => props.height, () => {
 onMounted(() => {
    editor.value = ace.edit(`editor-${id.value}`, {
       mode: `ace/mode/${mode.value}`,
-      theme: `ace/theme/${editorTheme.value}`,
+      theme: `ace/theme/${resolvedEditorTheme.value}`,
       value: props.modelValue,
       fontSize: 14,
       printMargin: false,

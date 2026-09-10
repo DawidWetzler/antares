@@ -10,7 +10,6 @@ const settingsStore = new Store({ name: 'settings' });
 const shortcutsStore = new Store({ name: 'shortcuts' });
 const isDarkTheme = window.matchMedia('(prefers-color-scheme: dark)');
 const defaultAppTheme = isDarkTheme.matches ? 'dark' : 'light';
-const defaultEditorTheme = isDarkTheme.matches ? 'twilight' : 'sqlserver';
 const prefersDark = ref(isDarkTheme.matches);
 
 isDarkTheme.addEventListener('change', e => {
@@ -32,7 +31,7 @@ export const useSettingsStore = defineStore('settings', {
       lineWrap: settingsStore.get('line_wrap', true) as boolean,
       executeSelected: settingsStore.get('execute_selected', true) as boolean,
       applicationTheme: settingsStore.get('application_theme', defaultAppTheme) as ApplicationTheme,
-      editorTheme: settingsStore.get('editor_theme', defaultEditorTheme) as string,
+      editorTheme: settingsStore.get('editor_theme', 'auto') as string,
       editorFontSize: settingsStore.get('editor_font_size', 'medium') as EditorFontSize,
       restoreTabs: settingsStore.get('restore_tabs', true) as boolean,
       disableBlur: settingsStore.get('disable_blur', false) as boolean,
@@ -42,7 +41,12 @@ export const useSettingsStore = defineStore('settings', {
    getters: {
       resolvedTheme: (state): 'light' | 'dark' => state.applicationTheme === 'system'
          ? (prefersDark.value ? 'dark' : 'light')
-         : state.applicationTheme
+         : state.applicationTheme,
+      resolvedEditorTheme (state): string {
+         if (state.editorTheme !== 'auto') return state.editorTheme;
+
+         return this.resolvedTheme === 'dark' ? 'twilight' : 'sqlserver';
+      }
    },
    actions: {
       changeLocale (locale: AvailableLocale) {

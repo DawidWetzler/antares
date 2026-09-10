@@ -541,6 +541,7 @@ const localEditorTheme: Ref<string> = ref(null);
 const selectedTab: Ref<string> = ref('general');
 
 const editorThemes = computed(() => [
+   { code: 'auto', name: t('application.followApplicationTheme') },
    {
       group: t('application.light'),
       themes: [

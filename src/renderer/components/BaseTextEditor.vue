@@ -40,7 +40,7 @@ const emit = defineEmits(['update:modelValue']);
 const settingsStore = useSettingsStore();
 
 const {
-   editorTheme,
+   resolvedEditorTheme,
    editorFontSize,
    autoComplete,
    lineWrap
@@ -59,9 +59,9 @@ watch(() => props.modelValue, () => {
       editor.session.setValue(props.modelValue);
 });
 
-watch(editorTheme, () => {
+watch(resolvedEditorTheme, () => {
    if (editor)
-      editor.setTheme(`ace/theme/${editorTheme.value}`);
+      editor.setTheme(`ace/theme/${resolvedEditorTheme.value}`);
 });
 
 watch(editorFontSize, () => {
@@ -100,7 +100,7 @@ watch(lineWrap, () => {
 onMounted(() => {
    editor = ace.edit(`editor-${id}`, {
       mode: `ace/mode/${props.mode}`,
-      theme: `ace/theme/${editorTheme.value}`,
+      theme: `ace/theme/${resolvedEditorTheme.value}`,
       value: props.modelValue || '',
       fontSize: 14,
       printMargin: false,
