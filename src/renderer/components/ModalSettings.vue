@@ -550,7 +550,7 @@ const editorThemes = computed(() => [
          { code: 'crimson_editor', name: 'Crimson Editor' },
          { code: 'dawn', name: 'Dawn' },
          { code: 'dreamweaver', name: 'Dreamweaver' },
-         { code: 'eclupse', name: 'Eclipse' },
+         { code: 'eclipse', name: 'Eclipse' },
          { code: 'github', name: 'GitHub' },
          { code: 'iplastic', name: 'IPlastic' },
          { code: 'solarized_light', name: 'Solarized Light' },
