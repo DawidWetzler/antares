@@ -7,8 +7,10 @@ import * as assert from 'node:assert/strict';
 import { after, before, describe, it, TestContext } from 'node:test';
 
 import customizations from 'common/customizations';
-import { FLOAT, LONG_TEXT, NUMBER, TEXT } from 'common/fieldTypes';
+import { DATE, DATETIME, FLOAT, LONG_TEXT, NUMBER, TEXT } from 'common/fieldTypes';
 import { ClientCode } from 'common/interfaces/antares';
+import { dateToString, parseDate } from 'common/libs/dateUtils';
+import { fakerCustom } from 'common/libs/fakerCustom';
 import { likeContains, quoteLiteral, sqlEscaper } from 'common/libs/sqlUtils';
 
 import { Dialect, DIALECTS, Fixture, openFixture, requireServer } from '../support/db';
@@ -476,6 +478,141 @@ for (const dialect of DIALECTS) {
          const rows = await foreignList(fx, { column: 'name', search: 'a', limit: 2 });
 
          assert.equal(rows.length, 2);
+      });
+   });
+}
+
+/**
+ * `insert-table-fake-rows` (src/main/ipc-handlers/tables.ts:386-425): the generated value is
+ * truncated, escaped or date-formatted in the handler, before the builder ever sees it. Only
+ * a real column can prove the result of that is something the dialect accepts — the unit
+ * layer proves the generator, not the round trip.
+ */
+const fc = fakerCustom as unknown as Record<string, Record<string, (...args: unknown[]) => unknown>>;
+
+const fakeValue = (dialect: Dialect, args: { group: string; method: string; type?: string; length?: number }) => {
+   const raw = fc[args.group][args.method]();
+   let literal: unknown = raw;
+
+   if (typeof literal === 'string') {
+      if (args.length) literal = literal.substring(0, args.length);
+
+      literal = dialect === 'mysql'
+         ? `'${sqlEscaper(literal as string)}'`
+         : `'${(literal as string).replaceAll('\'', '\'\'')}'`;
+   }
+   else if ([...DATE, ...DATETIME].includes(args.type))
+      literal = `'${dateToString(parseDate(literal), 'YYYY-MM-DD HH:mm:ss.SSSSSS')}'`;
+
+   return { raw, literal };
+};
+
+/** The fixture has no TIME column, and `time.now` / `time.random` exist to fill one. */
+const clocksDDL: Record<Dialect, (fx: Fixture) => string> = {
+   sqlite: fx => `CREATE TABLE ${fx.t('clocks')} (id INTEGER PRIMARY KEY AUTOINCREMENT, at_time TIME NULL)`,
+   mysql: fx => `CREATE TABLE ${fx.t('clocks')} (id INT AUTO_INCREMENT PRIMARY KEY, at_time TIME NULL)`,
+   pg: fx => `CREATE TABLE ${fx.t('clocks')} (id serial PRIMARY KEY, at_time time NULL)`
+};
+
+for (const dialect of DIALECTS) {
+   describe(`generated rows / ${dialect}`, () => {
+      let fx: Fixture;
+
+      before(async t => {
+         if (!await requireServer(t as TestContext, dialect)) return;
+         fx = await openFixture(dialect, `faker_${dialect}`);
+         await fx.exec(clocksDDL[dialect](fx));
+      });
+
+      after(async () => {
+         if (fx) await fx.drop();
+      });
+
+      it('a generated string and a generated number land in their columns', async t => {
+         if (!await requireServer(t, dialect)) return;
+         const title = fakeValue(dialect, { group: 'name', method: 'findName' });
+         const price = fakeValue(dialect, { group: 'random', method: 'number' });
+
+         await fx.client
+            .schema(fx.schema)
+            .into('books')
+            .insert([{ author_id: 1, title: title.literal, price: price.literal }])
+            .run();
+
+         const { rows } = await fx.exec(`SELECT * FROM ${fx.t('books')} WHERE id = (SELECT MAX(id) FROM ${fx.t('books')})`) as { rows: Row[] };
+         assert.equal(rows[0].title, title.raw);
+         assert.equal(Number(rows[0].price), price.raw);
+      });
+
+      it('a generated string longer than the column is cut to length, not refused', async t => {
+         if (!await requireServer(t, dialect)) return;
+         // `title` is VARCHAR(120); a paragraph is comfortably longer.
+         const long = fakeValue(dialect, { group: 'lorem', method: 'paragraphs', length: 120 });
+
+         assert.ok((long.raw as string).length > 120, 'the fixture needs a value longer than the column');
+
+         await fx.client.schema(fx.schema).into('books').insert([{ author_id: 1, title: long.literal }]).run();
+
+         const { rows } = await fx.exec(`SELECT title FROM ${fx.t('books')} WHERE id = (SELECT MAX(id) FROM ${fx.t('books')})`) as { rows: Row[] };
+         assert.equal(rows[0].title, (long.raw as string).substring(0, 120));
+      });
+
+      it('the same value without the cut is refused by the column', async t => {
+         if (!await requireServer(t, dialect)) return;
+         if (dialect === 'sqlite') {
+            t.skip('SQLite does not enforce VARCHAR length');
+            return;
+         }
+
+         const long = fakeValue(dialect, { group: 'lorem', method: 'paragraphs' });
+
+         await assert.rejects(
+            () => fx.client.schema(fx.schema).into('books').insert([{ author_id: 1, title: long.literal }]).run(),
+            /(Data too long|value too long)/i
+         );
+      });
+
+      it('a generated date, datetime and time are formatted the way the column takes them', async t => {
+         if (!await requireServer(t, dialect)) return;
+         const published = fakeValue(dialect, { group: 'date', method: 'past', type: 'DATE' });
+         const createdAt = fakeValue(dialect, { group: 'date', method: 'now', type: 'DATETIME' });
+         const atTime = fakeValue(dialect, { group: 'time', method: 'random', type: 'TIME' });
+
+         await fx.client
+            .schema(fx.schema)
+            .into('books')
+            .insert([{ author_id: 1, title: '\'dated\'', published: published.literal, created_at: createdAt.literal }])
+            .run();
+         await fx.client.schema(fx.schema).into('clocks').insert([{ at_time: atTime.literal }]).run();
+
+         const { rows } = await fx.exec(`SELECT published, created_at FROM ${fx.t('books')} WHERE title = 'dated'`) as { rows: Row[] };
+         assert.equal(dateToString(parseDate(rows[0].published), 'YYYY-MM-DD'), dateToString(parseDate(published.raw), 'YYYY-MM-DD'));
+         assert.equal(dateToString(parseDate(rows[0].created_at), 'YYYY-MM-DD HH:mm:ss'), createdAt.raw);
+
+         const clocks = await fx.exec(`SELECT at_time FROM ${fx.t('clocks')}`) as { rows: Row[] };
+         assert.match(String(clocks.rows[0].at_time), new RegExp(`${atTime.raw}`));
+      });
+
+      it('a generated value carrying a quote is escaped, not executed', async t => {
+         if (!await requireServer(t, dialect)) return;
+         // Seeded so the draw below is the same sequence on every run; faker's en surname
+         // list holds a handful of O'… names and nothing else with a quote in it.
+         (fc as unknown as { seed: (n: number) => void }).seed(2026);
+
+         let quoted: { raw: unknown; literal: unknown };
+         for (let i = 0; i < 2000 && !quoted; i++) {
+            const candidate = fakeValue(dialect, { group: 'name', method: 'lastName' });
+            if ((candidate.raw as string).includes('\'')) quoted = candidate;
+         }
+
+         assert.ok(quoted, 'no generated surname carried a quote in 2000 draws');
+
+         const before = await exactCount(fx);
+         await fx.client.schema(fx.schema).into('books').insert([{ author_id: 1, title: quoted.literal }]).run();
+
+         assert.equal(await exactCount(fx), before + 1);
+         const { rows } = await fx.exec(`SELECT title FROM ${fx.t('books')} WHERE id = (SELECT MAX(id) FROM ${fx.t('books')})`) as { rows: Row[] };
+         assert.equal(rows[0].title, quoted.raw);
       });
    });
 }

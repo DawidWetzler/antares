@@ -7,6 +7,7 @@ import {
    launchApp,
    LaunchedApp,
    makeUserDataDir,
+   pickFromBaseSelect,
    seedSettings,
    sqliteExec
 } from './helpers';
@@ -120,6 +121,43 @@ test.describe('database', () => {
             { message: 'insert reaches the sqlite file' })
          .toEqual([{ c: 61 }]);
       await expect(appWindow.locator('.workspace-query-info')).toContainText(/Total:\s*61/);
+   });
+
+   // The cheap layers cover the generator itself. What only the running app can show is that
+   // the method and the locale the modal collects reach the generator in the main process.
+   test('generates rows with faker through the insert modal', async () => {
+      await openPeopleTable(appWindow);
+
+      await appWindow.locator('.workspace-query-buttons button', { hasText: 'Insert rows' }).click();
+      const modal = appWindow.locator('.modal.active', { hasText: 'Insert rows' });
+      const nameRow = modal.locator('.form-group', { has: appWindow.locator('label[title="name"]') });
+
+      await pickFromBaseSelect(nameRow.locator('.select').first(), 'Name');
+      // picking a group reveals the method select beside it, first method preselected
+      await expect(nameRow.locator('.select')).toHaveCount(2);
+      await pickFromBaseSelect(nameRow.locator('.select').nth(1), 'Last name');
+
+      // the locale select only exists once at least one column is generated
+      await pickFromBaseSelect(modal.locator('.modal-footer .select'), 'Japanese');
+      await modal.locator('.modal-footer input[type="number"]').fill('3');
+      await modal.locator('.modal-footer button.btn-primary').click();
+      await expect(modal).toHaveCount(0);
+
+      await expect
+         .poll(() => sqliteExec<{ c: number }[]>(appWindow, dbFile, ['SELECT COUNT(*) AS c FROM people']),
+            { message: 'the generated rows reach the sqlite file' })
+         .toEqual([{ c: 63 }]);
+      await expect(appWindow.locator('.workspace-query-info')).toContainText(/Total:\s*63/);
+
+      // The value is random, and the locale is a unit-layer concern: all this layer may
+      // assert is that something was generated into the column.
+      const generated = await sqliteExec<{ name: string }[]>(appWindow, dbFile,
+         ['SELECT name FROM people ORDER BY id DESC LIMIT 3']);
+      expect(generated).toHaveLength(3);
+      for (const { name } of generated) {
+         expect(name ?? '', 'every generated cell holds a value').not.toBe('');
+         expect(name, 'the generated value is not the seeded one').not.toMatch(/^person-/);
+      }
    });
 
    test('deletes a row through the UI', async () => {
