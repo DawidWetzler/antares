@@ -6,7 +6,7 @@ const { VueLoaderPlugin } = require('vue-loader');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ProgressPlugin = require('progress-webpack-plugin');
 
-const { version } = require('./package.json');
+const { version, dependencies, devDependencies } = require('./package.json');
 const { contributors } = JSON.parse(fs.readFileSync('./.all-contributorsrc', 'utf-8'));
 const parsedContributors = contributors.reduce((acc, c) => {
    acc.push(c.name);
@@ -14,10 +14,13 @@ const parsedContributors = contributors.reduce((acc, c) => {
 }, []).join(',');
 
 const isDevMode = process.env.NODE_ENV !== 'production';
-const whiteListedModules = ['.bin'];
+// @mdi/js stays bundled on purpose. iconPaths.ts imports its icons by name so webpack
+// tree-shakes the 6.3 MB module down to the ~70 KB of paths actually used; externalising
+// it would trade that for requiring the whole module at runtime. Do not "fix" this.
+const whiteListedModules = ['@mdi/js'];
 const externals = {};
 
-fs.readdirSync('node_modules')
+Object.keys(dependencies).concat(Object.keys(devDependencies))
    .filter(x => whiteListedModules.indexOf(x) === -1)
    .forEach(mod => {
       externals[mod] = `commonjs ${mod}`;
