@@ -73,6 +73,8 @@
 <script>
 import { computed, defineComponent, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 
+import { normalizeSearch } from '@/libs/normalizeSearch';
+
 export default defineComponent({
    name: 'BaseSelect',
    props: {
@@ -211,10 +213,10 @@ export default defineComponent({
       });
 
       const filteredOptions = computed(() => {
-         const searchTerms = (searchText.value || '').toLowerCase().trim();
+         const searchTerms = normalizeSearch(searchText.value || '');
 
          let options = searchTerms && props.internalSearch
-            ? flattenOptions.value.filter(opt => opt.$type === 'group' || opt.label.trim().toLowerCase().indexOf(searchTerms) !== -1)
+            ? flattenOptions.value.filter(opt => opt.$type === 'group' || normalizeSearch(opt.label).indexOf(searchTerms) !== -1)
             : flattenOptions.value;
 
          if (options.length > props.maxVisibleOptions) {
