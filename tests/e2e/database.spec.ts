@@ -132,7 +132,7 @@ test.describe('database', () => {
       const modal = appWindow.locator('.modal.active', { hasText: 'Insert rows' });
       const nameRow = modal.locator('.form-group', { has: appWindow.locator('label[title="name"]') });
 
-      await pickFromBaseSelect(nameRow.locator('.select').first(), 'Name');
+      await pickFromBaseSelect(nameRow.locator('.select').first(), 'Person');
       // picking a group reveals the method select beside it, first method preselected
       await expect(nameRow.locator('.select')).toHaveCount(2);
       await pickFromBaseSelect(nameRow.locator('.select').nth(1), 'Last name');

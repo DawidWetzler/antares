@@ -1,5 +1,3 @@
-import { UsableLocale } from '@faker-js/faker';
-
 export interface TableUpdateParams {
    uid: string;
    schema: string;
@@ -46,5 +44,5 @@ export interface InsertRowsParams {
    }>;
    repeat: number;
    fields: Record<string, string>;
-   locale: UsableLocale;
+   locale: string;
 }

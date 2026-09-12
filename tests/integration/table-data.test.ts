@@ -6,11 +6,12 @@
 import * as assert from 'node:assert/strict';
 import { after, before, describe, it, TestContext } from 'node:test';
 
+import { faker } from '@faker-js/faker';
 import customizations from 'common/customizations';
 import { DATE, DATETIME, FLOAT, LONG_TEXT, NUMBER, TEXT } from 'common/fieldTypes';
 import { ClientCode } from 'common/interfaces/antares';
 import { dateToString, parseDate } from 'common/libs/dateUtils';
-import { fakerCustom } from 'common/libs/fakerCustom';
+import { generateFakeValue } from 'common/libs/fakerCustom';
 import { likeContains, quoteLiteral, sqlEscaper } from 'common/libs/sqlUtils';
 
 import { Dialect, DIALECTS, Fixture, openFixture, requireServer } from '../support/db';
@@ -488,10 +489,8 @@ for (const dialect of DIALECTS) {
  * a real column can prove the result of that is something the dialect accepts — the unit
  * layer proves the generator, not the round trip.
  */
-const fc = fakerCustom as unknown as Record<string, Record<string, (...args: unknown[]) => unknown>>;
-
 const fakeValue = (dialect: Dialect, args: { group: string; method: string; type?: string; length?: number }) => {
-   const raw = fc[args.group][args.method]();
+   const raw = generateFakeValue({ group: args.group, method: args.method });
    let literal: unknown = raw;
 
    if (typeof literal === 'string') {
@@ -530,8 +529,8 @@ for (const dialect of DIALECTS) {
 
       it('a generated string and a generated number land in their columns', async t => {
          if (!await requireServer(t, dialect)) return;
-         const title = fakeValue(dialect, { group: 'name', method: 'findName' });
-         const price = fakeValue(dialect, { group: 'random', method: 'number' });
+         const title = fakeValue(dialect, { group: 'person', method: 'fullName' });
+         const price = fakeValue(dialect, { group: 'number', method: 'int' });
 
          await fx.client
             .schema(fx.schema)
@@ -597,11 +596,11 @@ for (const dialect of DIALECTS) {
          if (!await requireServer(t, dialect)) return;
          // Seeded so the draw below is the same sequence on every run; faker's en surname
          // list holds a handful of O'… names and nothing else with a quote in it.
-         (fc as unknown as { seed: (n: number) => void }).seed(2026);
+         faker.seed(2026);
 
          let quoted: { raw: unknown; literal: unknown };
          for (let i = 0; i < 2000 && !quoted; i++) {
-            const candidate = fakeValue(dialect, { group: 'name', method: 'lastName' });
+            const candidate = fakeValue(dialect, { group: 'person', method: 'lastName' });
             if ((candidate.raw as string).includes('\'')) quoted = candidate;
          }
 

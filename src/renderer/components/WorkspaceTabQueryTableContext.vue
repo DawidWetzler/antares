@@ -179,21 +179,21 @@ const fakerMethods = {
    string: [
       { name: 'word', group: 'lorem' },
       { name: 'text', group: 'lorem' },
-      { name: 'firstName', group: 'name' },
-      { name: 'lastName', group: 'name' },
-      { name: 'jobTitle', group: 'name' },
-      { name: 'phoneNumber', group: 'phone' },
+      { name: 'firstName', group: 'person' },
+      { name: 'lastName', group: 'person' },
+      { name: 'jobTitle', group: 'person' },
+      { name: 'number', group: 'phone' },
       { name: 'exampleEmail', group: 'internet' },
       { name: 'ip', group: 'internet' },
       { name: 'domainName', group: 'internet' },
-      { name: 'color', group: 'internet' },
-      { name: 'uuid', group: 'random' }
+      { name: 'rgb', group: 'color' },
+      { name: 'uuid', group: 'string' }
    ],
    number: [
-      { name: 'number', group: 'random' }
+      { name: 'int', group: 'number' }
    ],
    float: [
-      { name: 'float', group: 'random' },
+      { name: 'float', group: 'number' },
       { name: 'amount', group: 'finance' }
    ],
    datetime: [
@@ -206,7 +206,7 @@ const fakerMethods = {
       { name: 'random', group: 'time' }
    ],
    uuid: [
-      { name: 'uuid', group: 'random' }
+      { name: 'uuid', group: 'string' }
    ]
 };
 

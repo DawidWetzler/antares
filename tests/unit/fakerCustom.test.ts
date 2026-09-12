@@ -1,13 +1,13 @@
 import * as assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
+import { faker } from '@faker-js/faker';
 import FakerMethods from 'common/FakerMethods';
-import { fakerCustom } from 'common/libs/fakerCustom';
+import { generateFakeValue } from 'common/libs/fakerCustom';
 
 interface CatalogEntry { name: string; group: string; types: string[]; params?: string[] }
 
 const methods = FakerMethods._methods as CatalogEntry[];
-const fc = fakerCustom as unknown as Record<string, Record<string, (...args: unknown[]) => unknown>>;
 
 /**
  * Deliberately loose: the two call sites care about the shape, never the value.
@@ -38,20 +38,14 @@ const sweep = () => {
    const wrongShape: string[] = [];
 
    for (const { group, name, types } of methods) {
-      const method = fc[group]?.[name];
-
-      if (typeof method !== 'function') {
-         notCallable.push(`${group}.${name}`);
-         continue;
-      }
-
       let value: unknown;
 
       try {
-         value = method();
+         value = generateFakeValue({ group, method: name });
       }
       catch (err) {
-         threw.push(`${group}.${name}: ${(err as Error).message}`);
+         const message = (err as Error).message;
+         (message.startsWith('faker has no method') ? notCallable : threw).push(`${group}.${name}: ${message}`);
          continue;
       }
 
@@ -66,10 +60,8 @@ const sweep = () => {
 
 const { notCallable, threw, wrongShape } = sweep();
 
-describe('fakerCustom against the catalog', () => {
-   test('every catalog entry resolves to a function on fakerCustom', {
-      todo: 'the catalog offers time.recent, and fakerCustom.time only defines now and random'
-   }, () => {
+describe('generateFakeValue against the catalog', () => {
+   test('every catalog entry resolves to something faker can produce', () => {
       assert.deepEqual(notCallable, []);
    });
 
@@ -77,45 +69,56 @@ describe('fakerCustom against the catalog', () => {
       assert.deepEqual(threw, []);
    });
 
-   test('every catalog entry returns a value of a shape it declares', {
-      todo: 'three entries hand back an array or a boolean where the catalog promises a string'
-   }, () => {
+   test('every catalog entry returns a value of a shape it declares', () => {
       assert.deepEqual(wrongShape, []);
    });
+
+   test('a group or method the catalog does not carry is refused, not silently empty', () => {
+      assert.throws(() => generateFakeValue({ group: 'nosuchgroup', method: 'city' }), /faker has no method/);
+      assert.throws(() => generateFakeValue({ group: 'location', method: 'nosuchmethod' }), /faker has no method/);
+   });
 });
 
-// The three methods fakerCustom adds on top of faker (fakerCustom.ts:9-16), the only part of
-// the wrapper that is ours. Format, never value: these are clocks.
-describe('the methods fakerCustom adds itself', () => {
+// The entries the wrapper produces itself rather than handing to faker, the only part of it
+// that is ours. Format, never value: these are clocks.
+describe('the entries the wrapper produces itself', () => {
    test('date.now is our moment-formatted timestamp, not faker\'s', () => {
-      assert.match(fc.date.now() as string, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+      assert.match(generateFakeValue({ group: 'date', method: 'now' }) as string, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
    });
 
-   test('time.now and time.random are moment-formatted times', () => {
-      assert.match(fc.time.now() as string, /^\d{2}:\d{2}:\d{2}$/);
-      assert.match(fc.time.random() as string, /^\d{2}:\d{2}:\d{2}$/);
+   test('time.now, time.recent and time.random are moment-formatted times', () => {
+      for (const method of ['now', 'recent', 'random'])
+         assert.match(generateFakeValue({ group: 'time', method }) as string, /^\d{2}:\d{2}:\d{2}$/);
    });
 
-   test('adding them does not cost the faker methods spread in beside them', () => {
-      // `...faker.date` sits after `now`, so a faker release that ships its own `date.now`
-      // would silently take ours over. The other direction has to hold too.
-      assert.equal(typeof fc.date.past, 'function');
-      assert.equal(typeof fc.date.recent, 'function');
+   test('overriding an entry does not cost the faker methods beside it', () => {
+      // `date.now` is ours and `date.recent` is faker's; both live in the same catalog group.
+      assert.ok(generateFakeValue({ group: 'date', method: 'past' }) instanceof Date);
+      assert.ok(generateFakeValue({ group: 'date', method: 'recent' }) instanceof Date);
+   });
+
+   test('a user-supplied min and max reach the generator', () => {
+      for (let i = 0; i < 50; i++) {
+         const value = generateFakeValue({ group: 'number', method: 'int', params: { min: 10, max: 12 } }) as number;
+         assert.ok(value >= 10 && value <= 12, `got ${value}`);
+      }
+   });
+
+   test('without params a number stays in the range faker 6 used, not faker 10\'s full range', () => {
+      // `random.number()` capped at 99999 on 6.1.2, and an INT column still has to take it.
+      for (let i = 0; i < 50; i++)
+         assert.ok((generateFakeValue({ group: 'number', method: 'int' }) as number) <= 99999);
    });
 });
 
-describe('fakerCustom.seed', () => {
-   test('is re-exported off the faker prototype, which the spread does not copy', () => {
-      assert.equal(typeof fc.seed, 'function');
-   });
-
-   test('the same seed replays the same value, a different seed does not', () => {
-      fc.seed(42);
-      const first = fc.name.firstName();
-      fc.seed(42);
-      const replay = fc.name.firstName();
-      fc.seed(1987);
-      const other = fc.name.firstName();
+describe('the no-locale path', () => {
+   test('runs on the root faker instance, so seeding it replays the same value', () => {
+      faker.seed(42);
+      const first = generateFakeValue({ group: 'person', method: 'firstName' });
+      faker.seed(42);
+      const replay = generateFakeValue({ group: 'person', method: 'firstName' });
+      faker.seed(1987);
+      const other = generateFakeValue({ group: 'person', method: 'firstName' });
 
       assert.equal(replay, first);
       assert.notEqual(other, first);

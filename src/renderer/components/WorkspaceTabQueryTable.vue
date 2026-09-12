@@ -256,7 +256,7 @@ import { BLOB, DATE, DATETIME, LONG_TEXT, TEXT, TIME } from 'common/fieldTypes';
 import { QueryResult, TableField } from 'common/interfaces/antares';
 import { TableUpdateParams } from 'common/interfaces/tableApis';
 import { dateToString, parseDate } from 'common/libs/dateUtils';
-import { fakerCustom } from 'common/libs/fakerCustom';
+import { generateFakeValue } from 'common/libs/fakerCustom';
 import { jsonToSqlInsert } from 'common/libs/sqlUtils';
 import { uidGen } from 'common/libs/uidGen';
 import * as json2php from 'json2php';
@@ -696,7 +696,7 @@ const fillCell = (event: { name: string; group: string; type: string }) => {
          datePrecision += i === 0 ? '.S' : 'S';
    }
 
-   fakeValue = (fakerCustom as any)[event.group][event.name]();
+   fakeValue = generateFakeValue({ group: event.group, method: event.name });
    const isDateType = [...DATE, ...DATETIME].includes(selectedCell.value.type);
    if (isDateType)
       fakeValue = dateToString(parseDate(fakeValue), `YYYY-MM-DD HH:mm:ss${datePrecision}`);

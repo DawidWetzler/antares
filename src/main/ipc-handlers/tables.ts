@@ -3,7 +3,7 @@ import { ARRAY, BIT, BLOB, BOOLEAN, DATE, DATETIME, FLOAT, LONG_TEXT, NUMBER, TE
 import * as antares from 'common/interfaces/antares';
 import { InsertRowsParams } from 'common/interfaces/tableApis';
 import { dateToString, parseDate } from 'common/libs/dateUtils';
-import { fakerCustom } from 'common/libs/fakerCustom';
+import { generateFakeValue } from 'common/libs/fakerCustom';
 import { formatJsonForSqlWhere, likeContains, quoteLiteral, sqlEscaper } from 'common/libs/sqlUtils';
 import { ipcMain } from 'electron';
 import * as fs from 'fs';
@@ -385,23 +385,19 @@ export default (connections: Record<string, antares.Client>) => {
                   insertObj[key] = escapedParam;
                }
                else { // Faker value
-                  const parsedParams: Record<string, string | number | boolean | Date | Buffer> = {};
-                  let fakeValue;
+                  const parsedParams: Record<string, number> = {};
 
-                  if (params.locale)
-                     fakerCustom.locale = params.locale;
+                  Object.keys(params.row[key].params).forEach(param => {
+                     if (!isNaN(params.row[key].params[param]))// Converts string numerics params to number
+                        parsedParams[param] = Number(params.row[key].params[param]);
+                  });
 
-                  if (Object.keys(params.row[key].params).length) {
-                     Object.keys(params.row[key].params).forEach(param => {
-                        if (!isNaN(params.row[key].params[param]))// Converts string numerics params to number
-                           parsedParams[param] = Number(params.row[key].params[param]);
-                     });
-                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                     fakeValue = (fakerCustom as any)[params.row[key].group][params.row[key].method](parsedParams);
-                  }
-                  else
-                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                     fakeValue = (fakerCustom as any)[params.row[key].group][params.row[key].method]();
+                  let fakeValue: string | number | Date = generateFakeValue({
+                     group: params.row[key].group,
+                     method: params.row[key].method,
+                     params: parsedParams,
+                     locale: params.locale
+                  });
 
                   if (typeof fakeValue === 'string') {
                      if (params.row[key].length)

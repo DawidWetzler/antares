@@ -73,7 +73,7 @@ describe('FakerMethods.getGroups', () => {
 describe('FakerMethods.getGroupsByType', () => {
    test('narrows to the groups that can fill that column type', () => {
       // `uuid` is the narrowest bucket: one method in one group.
-      assert.deepEqual(FakerMethods.getGroupsByType('uuid').map(g => g.name), ['random']);
+      assert.deepEqual(FakerMethods.getGroupsByType('uuid').map(g => g.name), ['string']);
       assert.deepEqual(FakerMethods.getGroupsByType('time').map(g => g.name), ['time']);
       assert.deepEqual(FakerMethods.getGroupsByType('datetime').map(g => g.name), ['date']);
    });
@@ -102,11 +102,11 @@ describe('FakerMethods.getGroupsByType', () => {
 describe('FakerMethods.getMethods', () => {
    test('returns the methods of one group that fill that column type, alphabetically', () => {
       assert.deepEqual(FakerMethods.getMethods({ type: 'time', group: 'time' }).map(m => m.name), ['now', 'random', 'recent']);
-      assert.deepEqual(FakerMethods.getMethods({ type: 'uuid', group: 'random' }).map(m => m.name), ['uuid']);
+      assert.deepEqual(FakerMethods.getMethods({ type: 'uuid', group: 'string' }).map(m => m.name), ['uuid']);
    });
 
    test('a group that cannot fill the type, or does not exist, returns nothing', () => {
-      assert.deepEqual(FakerMethods.getMethods({ type: 'uuid', group: 'address' }), []);
+      assert.deepEqual(FakerMethods.getMethods({ type: 'uuid', group: 'location' }), []);
       assert.deepEqual(FakerMethods.getMethods({ type: 'string', group: 'nosuchgroup' }), []);
    });
 
@@ -138,9 +138,7 @@ describe('en-US faker labels', () => {
       assert.deepEqual(offenders, []);
    });
 
-   test('no label outlives the catalog entry it was written for', {
-      todo: 'four labels outlive their commented-out catalog entries'
-   }, () => {
+   test('no label outlives the catalog entry it was written for', () => {
       const named = new Set([...methods.map(m => m.name), ...groups.map(g => g.name)]);
       const offenders = Object.keys(labels).filter(key => !named.has(key)).sort();
 
