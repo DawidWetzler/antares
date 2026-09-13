@@ -2,9 +2,9 @@ import * as antares from 'common/interfaces/antares';
 import { querySplitter } from 'common/libs/sqlUtils';
 import mysql from 'mysql2/promise';
 import * as pg from 'pg';
-import SSH2Promise = require('@fabio286/ssh2-promise');
 
 import { ipcLogger, LoggerLevel } from '../misc/ipcLogger';
+import { SSHTunnel } from '../SSHTunnel';
 
 /**
  * As Simple As Possible Query Builder Core
@@ -14,7 +14,7 @@ export abstract class BaseClient {
    protected _cUid: string;
    protected _params: mysql.ConnectionOptions | pg.ClientConfig | { databasePath: string; readonly: boolean};
    protected _poolSize: number;
-   protected _ssh?: SSH2Promise;
+   protected _ssh?: SSHTunnel;
    protected _logger: (args: {content: string; cUid: string; level: LoggerLevel}) => void;
    protected _querySplitter: (sql: string, client: antares.ClientCode) => string[];
    protected _queryDefaults: antares.QueryBuilderObject;

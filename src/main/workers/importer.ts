@@ -1,4 +1,3 @@
-import SSHConfig from '@fabio286/ssh2-promise/lib/sshConfig';
 import * as antares from 'common/interfaces/antares';
 import { ImportOptions, ImportState } from 'common/interfaces/importer';
 import log from 'electron-log/main';
@@ -19,8 +18,8 @@ log.errorHandler.startCatching();
 
 const importHandler = async (data: {
    type: string;
-   dbConfig: mysql.ConnectionOptions & { schema: string; ssl?: mysql.SslOptions; ssh?: SSHConfig; readonly: boolean }
-      | pg.ClientConfig & { schema: string; ssl?: mysql.SslOptions; ssh?: SSHConfig; readonly: boolean }
+   dbConfig: mysql.ConnectionOptions & { schema: string; ssl?: mysql.SslOptions; ssh?: antares.SSHConfig; readonly: boolean }
+      | pg.ClientConfig & { schema: string; ssl?: mysql.SslOptions; ssh?: antares.SSHConfig; readonly: boolean }
       | { databasePath: string; readonly: boolean };
    options: ImportOptions;
 }) => {

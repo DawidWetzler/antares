@@ -1,10 +1,9 @@
-import SSH2Promise = require('@fabio286/ssh2-promise');
-import SSHConfig from '@fabio286/ssh2-promise/lib/sshConfig';
 import dataTypes from 'common/data-types/mysql';
 import * as antares from 'common/interfaces/antares';
 import { removeComments } from 'common/libs/sqlUtils';
 import * as mysql from 'mysql2/promise';
 
+import { SSHTunnel } from '../SSHTunnel';
 import { BaseClient } from './BaseClient';
 
 export class MySQLClient extends BaseClient {
@@ -15,7 +14,7 @@ export class MySQLClient extends BaseClient {
    private _keepaliveMs: number;
    private sqlMode?: string[];
    _connection?: mysql.Connection | mysql.Pool;
-   _params: mysql.ConnectionOptions & {schema: string; ssl?: mysql.SslOptions; ssh?: SSHConfig; readonly: boolean};
+   _params: mysql.ConnectionOptions & {schema: string; ssl?: mysql.SslOptions; ssh?: antares.SSHConfig; readonly: boolean};
 
    private types: Record<number, string> = {
       0: 'DECIMAL',
@@ -160,26 +159,22 @@ export class MySQLClient extends BaseClient {
             if (this._params.ssh.password === '') delete this._params.ssh.password;
             if (this._params.ssh.passphrase === '') delete this._params.ssh.passphrase;
 
-            this._ssh = new SSH2Promise({
+            this._ssh = await SSHTunnel.open({
                ...this._params.ssh,
                reconnect: true,
-               reconnectTries: 3,
-               debug: process.env.NODE_ENV !== 'production' ? (s) => console.log(s) : null
-            });
-
-            const tunnel = await this._ssh.addTunnel({
+               reconnectTries: 3
+            }, {
                remoteAddr: this._params.host,
                remotePort: this._params.port
             });
 
-            dbConfig.host = undefined;
-            dbConfig.port = tunnel.localPort;
+            // The tunnel listens on 127.0.0.1 only, and 'localhost' resolves to ::1 first. Happy
+            // Eyeballs retries on IPv4 today, but that default can be switched off.
+            dbConfig.host = '127.0.0.1';
+            dbConfig.port = this._ssh.localPort;
          }
          catch (err) {
-            if (this._ssh) {
-               this._ssh.closeTunnel();
-               this._ssh.close();
-            }
+            if (this._ssh) this._ssh.close();
             throw err;
          }
       }
@@ -225,10 +220,7 @@ export class MySQLClient extends BaseClient {
       this._connection.end();
       clearInterval(this._keepaliveTimer);
       this._keepaliveTimer = undefined;
-      if (this._ssh) {
-         this._ssh.closeTunnel();
-         this._ssh.close();
-      }
+      if (this._ssh) this._ssh.close();
    }
 
    async getSingleConnection () {

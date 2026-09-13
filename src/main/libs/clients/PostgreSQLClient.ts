@@ -1,5 +1,3 @@
-import SSH2Promise = require('@fabio286/ssh2-promise');
-import SSHConfig from '@fabio286/ssh2-promise/lib/sshConfig';
 import dataTypes from 'common/data-types/postgresql';
 import * as antares from 'common/interfaces/antares';
 import { removeComments } from 'common/libs/sqlUtils';
@@ -7,6 +5,7 @@ import * as pg from 'pg';
 import * as pgAst from 'pgsql-ast-parser';
 import { ConnectionOptions } from 'tls';
 
+import { SSHTunnel } from '../SSHTunnel';
 import { BaseClient } from './BaseClient';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -100,7 +99,7 @@ export class PostgreSQLClient extends BaseClient {
       _varchar: 'CHARACTER VARYING'
    };
 
-   _params: pg.ClientConfig & {schema: string; ssl?: ConnectionOptions; ssh?: SSHConfig; readonly: boolean};
+   _params: pg.ClientConfig & {schema: string; ssl?: ConnectionOptions; ssh?: antares.SSHConfig; readonly: boolean};
 
    constructor (args: antares.ClientParams) {
       super(args);
@@ -168,26 +167,22 @@ export class PostgreSQLClient extends BaseClient {
 
       if (this._params.ssh) {
          try {
-            this._ssh = new SSH2Promise({
+            this._ssh = await SSHTunnel.open({
                ...this._params.ssh,
                reconnect: true,
-               reconnectTries: 3,
-               debug: process.env.NODE_ENV !== 'production' ? (s) => console.log(s) : null
-            });
-
-            const tunnel = await this._ssh.addTunnel({
+               reconnectTries: 3
+            }, {
                remoteAddr: this._params.host,
                remotePort: this._params.port
             });
 
-            dbConfig.host = undefined;
-            dbConfig.port = tunnel.localPort;
+            // The tunnel listens on 127.0.0.1 only, and 'localhost' resolves to ::1 first. Happy
+            // Eyeballs retries on IPv4 today, but that default can be switched off.
+            dbConfig.host = '127.0.0.1';
+            dbConfig.port = this._ssh.localPort;
          }
          catch (err) {
-            if (this._ssh) {
-               this._ssh.close();
-               this._ssh.closeTunnel();
-            }
+            if (this._ssh) this._ssh.close();
             throw err;
          }
       }
@@ -255,10 +250,7 @@ export class PostgreSQLClient extends BaseClient {
       this._connection.end();
       clearInterval(this._keepaliveTimer);
       this._keepaliveTimer = undefined;
-      if (this._ssh) {
-         this._ssh.close();
-         this._ssh.closeTunnel();
-      }
+      if (this._ssh) this._ssh.close();
    }
 
    private async keepAlive () {

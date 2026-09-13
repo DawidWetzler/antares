@@ -1,4 +1,3 @@
-import type SSHConfig from '@fabio286/ssh2-promise/lib/sshConfig';
 import type * as mysql from 'mysql2/promise';
 import type * as pg from 'pg';
 import type { FirebirdSQLClient } from 'src/main/libs/clients/FirebirdSQLClient';
@@ -20,6 +19,22 @@ export type Importer = MySQLImporter | PostgreSQLImporter
 export interface IpcResponse<T = any> {
    status: 'success' | 'error' | 'abort';
    response?: T;
+}
+
+/**
+ * Assembled in src/main/ipc-handlers/connection.ts
+ */
+export interface SSHConfig {
+   host: string;
+   port: number;
+   username: string;
+   password?: string;
+   privateKey?: string;
+   passphrase?: string;
+   keepaliveInterval?: number;
+   reconnect?: boolean;
+   reconnectTries?: number;
+   reconnectDelay?: number;
 }
 
 /**
