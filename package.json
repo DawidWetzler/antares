@@ -33,8 +33,6 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . && stylelint \"./src/**/*.{css,scss,sass,vue}\"",
     "lint:fix": "eslint . --fix && stylelint \"./src/**/*.{css,scss,sass,vue}\" --fix",
-    "contributors:add": "all-contributors add",
-    "contributors:generate": "all-contributors generate",
     "prepare": "husky"
   },
   "author": "Fabio Di Stasio <info@fabiodistasio.it>",
@@ -179,7 +177,6 @@
     "@types/ssh2": "1.15.5",
     "@typescript-eslint/eslint-plugin": "8.68.0",
     "@typescript-eslint/parser": "8.68.0",
-    "all-contributors-cli": "6.26.1",
     "cross-env": "10.1.0",
     "css-loader": "7.1.4",
     "electron": "43.4.1",
