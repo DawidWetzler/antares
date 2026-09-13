@@ -85,25 +85,43 @@ export const openSettingsModal = async (appWindow: Page): Promise<void> => {
 // Enter commits `filteredOptions[hightlightedIndex]`, an index only recomputed in a watcher
 // (:31 vs :241) — stale, or `undefined` once filtering shortened the list, which silently
 // leaves the old value. So the pick is verified and retried; finding 27 in tests/FINDINGS.md.
+// Every step is bounded so a disrupted attempt retries instead of hanging. An open select is not
+// stable: WorkspaceAddConnectionPanel.vue:629 focuses the first input from a bare
+// setTimeout(200), and a starved renderer — three Electron instances at the default worker
+// count — fires it late enough to land mid-pick, blurring the search input so handleBlurEvent()
+// deactivates the select. Unbounded, the fill() that follows then spends its full 30s on a
+// width:0 input and the retry below never gets its turn. The timer is one-shot, so the next
+// attempt runs after it.
+const SELECT_STEP_TIMEOUT = 3000;
+
 export const pickFromBaseSelect = async (root: Locator, optionLabel: string): Promise<void> => {
    const committed = root.locator('.select__item-text span');
+   const search = root.locator('.select__search-input');
+   const wrapper = root.locator('.select__list-wrapper');
+   const timeout = SELECT_STEP_TIMEOUT;
 
    for (let attempt = 1; attempt <= 3; attempt++) {
-      // focus(), not click(): the dropdown opens from `@focus="activate()"`, and a click on a
-      // window without OS focus never delivers it — hence the breakage only in parallel runs.
-      await root.focus();
-      if (!await root.locator('.select__list-wrapper').count())
-         await root.click();
+      try {
+         // focus(), not click(): the dropdown opens from `@focus="activate()"`, and a click on a
+         // window without OS focus never delivers it — hence the breakage only in parallel runs.
+         await root.focus();
+         // Waited on, not counted: activate() sets isOpen before Vue flushes the list into the
+         // DOM, so a count() here races that flush and a click on the false negative would blur
+         // the search input and close the select this just opened.
+         await expect(root).toHaveClass(/select--open/, { timeout });
 
-      const search = root.locator('.select__search-input');
-      await search.fill(optionLabel);
-      // exact text: the page-size options include both '100' and '1000'
-      await expect(root.locator('.select__item').filter({ hasText: new RegExp(`^${optionLabel}$`) })).toHaveCount(1);
-      await expect(root.locator('.select__item.select__option--highlight')).toHaveText(optionLabel);
-      await search.press('Enter');
-      await expect(root.locator('.select__list-wrapper')).toHaveCount(0);
+         await search.fill(optionLabel, { timeout });
+         // exact text: the page-size options include both '100' and '1000'
+         await expect(root.locator('.select__item').filter({ hasText: new RegExp(`^${optionLabel}$`) })).toHaveCount(1, { timeout });
+         await expect(root.locator('.select__item.select__option--highlight')).toHaveText(optionLabel, { timeout });
+         await search.press('Enter');
+         await expect(wrapper).toHaveCount(0, { timeout });
 
-      if ((await committed.textContent())?.trim() === optionLabel) return;
+         if ((await committed.textContent())?.trim() === optionLabel) return;
+      }
+      catch (err) {
+         if (attempt === 3) throw err;
+      }
    }
 
    throw new Error(`BaseSelect never committed "${optionLabel}" in 3 attempts (see finding 27)`);
