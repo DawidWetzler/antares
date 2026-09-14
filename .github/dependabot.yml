@@ -9,6 +9,13 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    ignore:
+      # 7.0 ships the Go compiler and drops lib/typescript.js, so there is no importable API
+      # at all: ts-loader (all three webpack configs) and ts-node (the test runner) both break
+      # on it, and only `tsc --noEmit` still works. The API is due back in 7.1, which this
+      # range lets straight through — the block lifts itself, no diary entry needed.
+      - dependency-name: "typescript"
+        versions: ["7.0.x"]
 
   # Keeps the SHA-pinned third-party actions current: Dependabot rewrites both
   # the SHA and the version comment when a new release ships.
