@@ -2,6 +2,55 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.8.0-beta.0](https://github.com/DawidWetzler/antares/compare/v0.7.35...v0.8.0-beta.0) (2026-09-14)
+
+
+### Features
+
+* **common:** add a date parser and formatter to replace moment ([eef452a](https://github.com/DawidWetzler/antares/commit/eef452a44d676c560086094b896195464551d9e1))
+* **faker:** migrate to @faker-js/faker 10.6.0 and fix locale selection ([c1ade59](https://github.com/DawidWetzler/antares/commit/c1ade598204cc76decb78b1dba0d96a513dbf0eb))
+* **query:** confirm before clearing a query tab ([f58191b](https://github.com/DawidWetzler/antares/commit/f58191b58290e5a4d71b77963491941e38ed123b))
+* **renderer:** add Catppuccin Latte and Mocha editor themes ([ebc1f10](https://github.com/DawidWetzler/antares/commit/ebc1f107ff443d8cbd720da9f33eff71616d4b0d)), closes [#7c7f93](https://github.com/DawidWetzler/antares/issues/7c7f93) [#808080](https://github.com/DawidWetzler/antares/issues/808080) [#808080](https://github.com/DawidWetzler/antares/issues/808080)
+* **renderer:** add the Catppuccin Frappe and Macchiato editor flavours ([e621aa1](https://github.com/DawidWetzler/antares/commit/e621aa1eeac784bbb4813e3653000aadbbbaa920)), closes [#a6d189](https://github.com/DawidWetzler/antares/issues/a6d189) [#a6e3a1](https://github.com/DawidWetzler/antares/issues/a6e3a1) [#a6e3a1](https://github.com/DawidWetzler/antares/issues/a6e3a1)
+* **renderer:** let the editor theme follow the application theme ([294f0df](https://github.com/DawidWetzler/antares/commit/294f0df6c85b6a2a3bc71574b9e984a6bb8fea3e))
+* replace @electron/remote with window and context-menu IPC channels ([747ec1b](https://github.com/DawidWetzler/antares/commit/747ec1b0f0a282b61fdebd333613c906d3a58a05))
+* **themes:** add a system application theme ([056cc4e](https://github.com/DawidWetzler/antares/commit/056cc4efd5716c19e1b8e8a53cb5706219c7d9d6))
+
+
+### Bug Fixes
+
+* **BaseIcon:** degrade to a placeholder when a custom icon record is gone ([33b2223](https://github.com/DawidWetzler/antares/commit/33b222396a14490a4041c3e3a87cbfbef38096df))
+* **BaseIcon:** sanitize custom icon SVG with DOMPurify ([0d63142](https://github.com/DawidWetzler/antares/commit/0d6314218f56382efe76bf7b705f279655848a0f))
+* **BaseMap:** draw multi geometries instead of throwing ([4070817](https://github.com/DawidWetzler/antares/commit/4070817fa2667dbcb63384c696e5a2a2b11f44da))
+* **BaseMap:** tear the map down and stop resolving its container globally ([b313e4b](https://github.com/DawidWetzler/antares/commit/b313e4b0a1225e5772a94bf621d64d4aa6781a45))
+* **changelog:** read release notes from this fork, not upstream ([b372a4f](https://github.com/DawidWetzler/antares/commit/b372a4fbfabd797fb15238faa34e2baa91c5c5af))
+* **changelog:** strip raw HTML out of the release notes markdown ([8aecec7](https://github.com/DawidWetzler/antares/commit/8aecec7756b8a73253d2c1b05f49901744072df1))
+* correct min-release-age unit and unblock native builds on node 24 ([fbaf96e](https://github.com/DawidWetzler/antares/commit/fbaf96e26293103f5178a369880665d7818b3460))
+* **dev:** stop the dev runner reporting a failed compile as success ([896e487](https://github.com/DawidWetzler/antares/commit/896e487d0e1e8383917ea7f215a3cdf94c2b472a))
+* **Firebird:** connect to a stock modern server ([ba17d1f](https://github.com/DawidWetzler/antares/commit/ba17d1ff53549bb690509e05a0511e8a07a0fda9))
+* **insert:** send an emptied numeric column as NULL, not as nothing ([434042d](https://github.com/DawidWetzler/antares/commit/434042d77a2d661e5970d3a077f2b3a63e17e9d1))
+* let read-file and write-file reach only files the user picked ([8e5583f](https://github.com/DawidWetzler/antares/commit/8e5583f8b132418305d6603161d02cd61b0f325e))
+* persist imported custom icons under the key the store reads ([75e893c](https://github.com/DawidWetzler/antares/commit/75e893cb3162b71bdead9512da7007244fcb3408))
+* persist lastConnections when a connection is deleted ([d1d8974](https://github.com/DawidWetzler/antares/commit/d1d8974783cb49bf06c0978b8b4eea840b6debed))
+* **pg:** stop DELETE ... RETURNING failing on its own field metadata ([cbf5df5](https://github.com/DawidWetzler/antares/commit/cbf5df5cbbbff4096d314e826d4276597757b3e7))
+* re-enable the IPC sender check by comparing paths in URL space ([816b707](https://github.com/DawidWetzler/antares/commit/816b707958643407c77f6ad3f5daee21f4945266))
+* recover custom icons imported under the dead `customIcons` key ([fd190fa](https://github.com/DawidWetzler/antares/commit/fd190fad628efca30980cea0b09376f4fa1c4851))
+* reject IPC from untrusted frames on the six unguarded channels ([e417c20](https://github.com/DawidWetzler/antares/commit/e417c206c507405ecbfe27e9c17b0eb9fdba1f00))
+* **renderer:** correct the misspelled eclipse editor theme code ([878ae65](https://github.com/DawidWetzler/antares/commit/878ae65d2ab5898eb4a54044354edd4aabdba987))
+* **renderer:** find dropdown options through their accents ([41fb4a1](https://github.com/DawidWetzler/antares/commit/41fb4a161c184ef4a666240e6af6d09d306d30c2))
+* repair e2e suite on electron 30 ([a513310](https://github.com/DawidWetzler/antares/commit/a513310a665a243ef1a1a5303514c0d2bcdd8bc7))
+* **scss:** replace overflow: overlay with auto, and correct a wrong comment ([7b5a378](https://github.com/DawidWetzler/antares/commit/7b5a378375a6941929ab6c1da7b9a4af4b77d17b))
+* send bug reports and links to this fork, not upstream ([23ca9c6](https://github.com/DawidWetzler/antares/commit/23ca9c68a0e7e33ee5187d2334a12d99feb16a5b))
+* **tables:** edit a cell on a table without a single primary key ([4528b01](https://github.com/DawidWetzler/antares/commit/4528b0110942b09977086746ee13cf18d0553105))
+* **updates:** notify about releases instead of installing them unsigned ([a34a356](https://github.com/DawidWetzler/antares/commit/a34a356baae556ffa1c9b1b1016f6f23072cdbd0))
+
+
+### Improvements
+
+* fetch one page of the foreign key list instead of every referenced row ([077dd59](https://github.com/DawidWetzler/antares/commit/077dd5910d08e69d6c4d38cfd6d6d28dd85c4861))
+* give each query editor its own ace completer list ([c8a338f](https://github.com/DawidWetzler/antares/commit/c8a338f192eff208d0f9230c707b14c7dd8eb609))
+* **renderer:** tree-shake @mdi/js down to the icons in use ([bc08743](https://github.com/DawidWetzler/antares/commit/bc087438a350fbbdd94d25479af094dea8642e9d))
+
 ### [0.7.35](https://github.com/antares-sql/antares/compare/v0.7.35-beta.1...v0.7.35) (2025-06-17)
 
 ### [0.7.35-beta.1](https://github.com/antares-sql/antares/compare/v0.7.35-beta.0...v0.7.35-beta.1) (2025-04-28)
