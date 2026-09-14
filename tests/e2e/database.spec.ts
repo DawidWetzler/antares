@@ -123,6 +123,40 @@ test.describe('database', () => {
       await expect(appWindow.locator('.workspace-query-info')).toContainText(/Total:\s*61/);
    });
 
+   // The unit layer covers the shared escaper; this covers the second, duplicated chain in
+   // ipc-handlers/tables.ts, which nothing below the UI reaches. An emptied numeric input holds
+   // '', which is neither null nor a number: passed through untouched it reached the VALUES list
+   // as nothing at all — `VALUES (, '', '')` — and the engine rejected the whole insert with a
+   // syntax error naming a comma the user never typed.
+   //
+   // Only the id is touched. `name` is left at its mount default so the case does not also
+   // depend on text surviving in the modal, which is its own race: FakerSelect owns every row
+   // through v-model and rewrites localRow[field] as it settles, dropping a typed value.
+   test('an emptied numeric column inserts as NULL instead of breaking the query', async () => {
+      await openPeopleTable(appWindow);
+
+      await appWindow.locator('.workspace-query-buttons button', { hasText: 'Insert rows' }).click();
+      const modal = appWindow.locator('.modal.active', { hasText: 'Insert rows' });
+      const idInput = modal
+         .locator('.form-group', { has: appWindow.locator('label[title="id"]') })
+         .locator('input.form-input');
+
+      // the whole gesture: put a digit in the numeric column, then change your mind
+      await idInput.fill('7');
+      await idInput.fill('');
+
+      await modal.locator('.modal-footer button.btn-primary').click();
+      await expect(modal).toHaveCount(0);
+
+      // 61, not 7: an emptied INTEGER PRIMARY KEY has to reach SQLite as NULL and autoincrement.
+      // Before the fix the insert never ran at all and the table stayed at 60 rows.
+      await expect
+         .poll(() => sqliteExec<{ id: number }[]>(appWindow, dbFile,
+            ['SELECT id FROM people ORDER BY id DESC LIMIT 1']),
+         { message: 'the emptied id autoincrements instead of failing the insert' })
+         .toEqual([{ id: 61 }]);
+   });
+
    // The cheap layers cover the generator itself. What only the running app can show is that
    // the method and the locale the modal collects reach the generator in the main process.
    test('generates rows with faker through the insert modal', async () => {

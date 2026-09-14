@@ -334,8 +334,13 @@ export default (connections: Record<string, antares.Client>) => {
                if (!('group' in params.row[key]) || params.row[key].group === 'manual') { // Manual value
                   if (params.row[key].value === null || params.row[key].value === undefined)
                      escapedParam = 'NULL';
+                  // '' is what an emptied numeric input yields, and it is not a number: passed
+                  // through it reaches the VALUES list as nothing at all and the engine rejects
+                  // the query on a stray comma. Numeric branches only — '' stays a literal for
+                  // text. Mirrors valueToSqlString in common/libs/sqlUtils.ts, which this chain
+                  // duplicates (see the TODO above).
                   else if ([...NUMBER, ...FLOAT].includes(type))
-                     escapedParam = params.row[key].value;
+                     escapedParam = params.row[key].value === '' ? 'NULL' : params.row[key].value;
                   else if ([...TEXT, ...LONG_TEXT].includes(type)) {
                      switch (connections[params.uid]._client) {
                         case 'mysql':

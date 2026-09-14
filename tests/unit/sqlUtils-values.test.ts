@@ -85,6 +85,20 @@ describe('valueToSqlString', () => {
       assert.ok(Number.isNaN(valueToSqlString({ val: 'nope', client: 'mysql', field: { type: 'DECIMAL', datePrecision: 0 } }) as unknown as number));
    });
 
+   // An empty numeric input means "no value", and the only SQL spelling of that is NULL. Left as
+   // the raw '' it lands in the VALUES list as nothing at all — `VALUES (, 'x')` — which the
+   // engine rejects with a syntax error naming a comma the user never typed. Reachable in one
+   // gesture: type a digit into a numeric column of the insert modal, then clear it.
+   test('an emptied numeric field becomes NULL rather than an empty slot', () => {
+      for (const c of DIALECTS)
+         assert.equal(valueToSqlString({ val: '', client: c, field: num }), 'NULL', `client ${c}`);
+   });
+
+   test('an emptied float field becomes NULL rather than NaN', () => {
+      for (const c of DIALECTS)
+         assert.equal(valueToSqlString({ val: '', client: c, field: { type: 'FLOAT', datePrecision: 0 } }), 'NULL', `client ${c}`);
+   });
+
    test('booleans pass through unquoted', () => {
       assert.equal(valueToSqlString({ val: true, client: 'mysql', field: { type: 'BOOLEAN', datePrecision: 0 } }), true);
       assert.equal(valueToSqlString({ val: false, client: 'sqlite', field: { type: 'BOOL', datePrecision: 0 } }), false);

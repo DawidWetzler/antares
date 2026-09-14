@@ -398,10 +398,13 @@ export const valueToSqlString = (args: {
       else if (client === 'pg')
          parsedValue = `decode('${buffer.toString('hex').toUpperCase()}', 'hex')`;
    }
+   // '' is what an emptied numeric input yields, and it is not a number: passed through it lands
+   // in the VALUES list as nothing at all and the engine rejects the query on a stray comma.
+   // Only the numeric branches coerce it — '' stays an empty literal for text.
    else if (NUMBER.includes(field.type))
-      parsedValue = val;
+      parsedValue = val === '' ? 'NULL' : val;
    else if (FLOAT.includes(field.type))
-      parsedValue = parseFloat(val);
+      parsedValue = val === '' ? 'NULL' : parseFloat(val);
    else if (SPATIAL.includes(field.type))
       parsedValue = `ST_GeomFromGeoJSON('${JSON.stringify(valueToGeoJSON(val, IS_MULTI_SPATIAL.includes(field.type)))}')`;
    else if (val === '') parsedValue = `${sw}${sw}`;
