@@ -11,6 +11,13 @@ const shortcutsStore = new Store({ name: 'shortcuts' });
 const isDarkTheme = window.matchMedia('(prefers-color-scheme: dark)');
 const defaultAppTheme = isDarkTheme.matches ? 'dark' : 'light';
 const prefersDark = ref(isDarkTheme.matches);
+// Up to 0.8.0 a single `editor_theme` covered both colour schemes. Keep it as the
+// fallback for whichever scheme the user has not picked a theme for since.
+const legacyEditorTheme = (): string => {
+   const stored = settingsStore.get('editor_theme') as string;
+
+   return stored && stored !== 'auto' ? stored : null;
+};
 
 isDarkTheme.addEventListener('change', e => {
    prefersDark.value = e.matches;
@@ -31,7 +38,8 @@ export const useSettingsStore = defineStore('settings', {
       lineWrap: settingsStore.get('line_wrap', true) as boolean,
       executeSelected: settingsStore.get('execute_selected', true) as boolean,
       applicationTheme: settingsStore.get('application_theme', defaultAppTheme) as ApplicationTheme,
-      editorTheme: settingsStore.get('editor_theme', 'auto') as string,
+      editorThemeLight: settingsStore.get('editor_theme_light', legacyEditorTheme() ?? 'sqlserver') as string,
+      editorThemeDark: settingsStore.get('editor_theme_dark', legacyEditorTheme() ?? 'twilight') as string,
       editorFontSize: settingsStore.get('editor_font_size', 'medium') as EditorFontSize,
       restoreTabs: settingsStore.get('restore_tabs', true) as boolean,
       disableBlur: settingsStore.get('disable_blur', false) as boolean,
@@ -43,9 +51,7 @@ export const useSettingsStore = defineStore('settings', {
          ? (prefersDark.value ? 'dark' : 'light')
          : state.applicationTheme,
       resolvedEditorTheme (state): string {
-         if (state.editorTheme !== 'auto') return state.editorTheme;
-
-         return this.resolvedTheme === 'dark' ? 'twilight' : 'sqlserver';
+         return this.resolvedTheme === 'dark' ? state.editorThemeDark : state.editorThemeLight;
       }
    },
    actions: {
@@ -92,8 +98,14 @@ export const useSettingsStore = defineStore('settings', {
          ipcRenderer.send('refresh-theme-settings');
       },
       changeEditorTheme (theme: string) {
-         this.editorTheme = theme;
-         settingsStore.set('editor_theme', this.editorTheme);
+         if (this.resolvedTheme === 'dark') {
+            this.editorThemeDark = theme;
+            settingsStore.set('editor_theme_dark', theme);
+         }
+         else {
+            this.editorThemeLight = theme;
+            settingsStore.set('editor_theme_light', theme);
+         }
       },
       changeEditorFontSize (size: EditorFontSize) {
          this.editorFontSize = size;

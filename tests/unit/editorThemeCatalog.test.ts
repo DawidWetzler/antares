@@ -17,10 +17,7 @@ const editorThemesBlock = (): string => {
 };
 
 const codesIn = (block: string): string[] => [...block.matchAll(/code: '([a-z0-9_]+)'/g)]
-   .map(([, code]) => code)
-   // `auto` is the sentinel meaning "follow the application theme", resolved before it
-   // ever reaches ace, so ace ships no file for it.
-   .filter(code => code !== 'auto');
+   .map(([, code]) => code);
 
 // The light/dark split is hand-maintained in the template, so the groups are read back the
 // same way: whatever sits between one group label and the next belongs to that group.

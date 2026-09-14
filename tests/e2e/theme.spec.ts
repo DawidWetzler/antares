@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { Page } from 'playwright';
 
-import { appVersion, closeApp, launchApp, makeUserDataDir, openSettingsModal, readSettings, seedSettings } from './helpers';
+import { appVersion, closeApp, launchApp, makeUserDataDir, openSettingsModal, pickFromBaseSelect, readSettings, seedSettings } from './helpers';
 
 const openThemesTab = async (appWindow: Page): Promise<void> => {
    await openSettingsModal(appWindow);
@@ -9,11 +9,12 @@ const openThemesTab = async (appWindow: Page): Promise<void> => {
    await appWindow.locator('#settings .theme-block').first().waitFor();
 };
 
-const seedTheme = (userDataDir: string, theme: string): void =>
+const seedTheme = (userDataDir: string, theme: string, editorThemes: Record<string, string> = {}): void =>
    seedSettings(userDataDir, {
       cached_version: appVersion(),
       notifications_timeout: 3600,
-      application_theme: theme
+      application_theme: theme,
+      ...editorThemes
    });
 
 test.describe('system theme', () => {
@@ -75,5 +76,32 @@ test.describe('system theme', () => {
       ).toBe('light');
 
       await closeApp(app);
+   });
+
+   test('the editor theme belongs to the application theme it was picked on', async () => {
+      const userDataDir = makeUserDataDir();
+      seedTheme(userDataDir, 'light', { editor_theme_light: 'dracula', editor_theme_dark: 'catppuccin_mocha' });
+      const app = await launchApp(userDataDir);
+
+      // Only the themes tab is on screen, but every other tab stays in the DOM under v-show.
+      const themesTab = app.appWindow.locator('#settings .panel-body:visible');
+      const editorTheme = themesTab.locator('.select');
+      const preview = themesTab.locator('.ace_editor');
+
+      await openThemesTab(app.appWindow);
+      await expect(editorTheme.locator('.select__item-text span')).toHaveText('Dracula');
+      await expect(preview).toHaveClass(/ace-dracula/);
+
+      await app.appWindow.locator('#settings .theme-block', { hasText: 'Dark' }).click();
+      await expect(editorTheme.locator('.select__item-text span'), 'expect the dark theme to bring its own editor theme').toHaveText('Catppuccin Mocha');
+      await expect(preview).toHaveClass(/ace-catppuccin-mocha/);
+
+      await pickFromBaseSelect(editorTheme, 'Monokai');
+      await expect(preview).toHaveClass(/ace-monokai/);
+
+      await closeApp(app);
+      const settings = readSettings(userDataDir);
+      expect(settings.editor_theme_dark, 'a pick made on the dark theme belongs to it').toBe('monokai');
+      expect(settings.editor_theme_light, 'the light theme keeps the theme picked for it').toBe('dracula');
    });
 });

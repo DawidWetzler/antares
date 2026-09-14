@@ -331,7 +331,6 @@
                                  option-track-by="code"
                                  group-label="group"
                                  group-values="themes"
-                                 @change="changeEditorTheme(localEditorTheme)"
                               />
                            </div>
                            <div class="column col-7 mb-4">
@@ -483,7 +482,7 @@ const {
    showTableSize,
    disableBlur,
    applicationTheme,
-   editorTheme,
+   resolvedEditorTheme,
    editorFontSize
 } = storeToRefs(settingsStore);
 
@@ -537,11 +536,16 @@ const localLocale: Ref<AvailableLocale> = ref(null);
 const defaultCopyType: Ref<string> = ref(null);
 const localPageSize: Ref<number> = ref(null);
 const localTimeout: Ref<number> = ref(null);
-const localEditorTheme: Ref<string> = ref(null);
 const selectedTab: Ref<string> = ref('general');
 
+// The theme belongs to the colour scheme in use, so the picker shows and writes the one
+// that matches the application theme selected above.
+const localEditorTheme = computed({
+   get: () => resolvedEditorTheme.value,
+   set: changeEditorTheme
+});
+
 const editorThemes = computed(() => [
-   { code: 'auto', name: t('application.followApplicationTheme') },
    {
       group: t('application.light'),
       themes: [
@@ -673,7 +677,6 @@ localLocale.value = selectedLocale.value;
 defaultCopyType.value = selectedCopyType.value;
 localPageSize.value = pageSize.value as number;
 localTimeout.value = notificationsTimeout.value as number;
-localEditorTheme.value = editorTheme.value as string;
 selectedTab.value = selectedSettingTab.value;
 window.addEventListener('keydown', onKey);
 

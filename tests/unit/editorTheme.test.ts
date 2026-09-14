@@ -48,40 +48,58 @@ describe('editor theme resolution', () => {
       setSystemPrefersDark(false);
    });
 
-   test('a fresh install follows the application theme', async () => {
-      const store = await loadStore();
-      assert.equal(store.editorTheme, 'auto');
+   test('a fresh install reads sqlserver on a light application theme and twilight on a dark one', async () => {
+      const light = await loadStore({ application_theme: 'light' });
+      assert.equal(light.resolvedEditorTheme, 'sqlserver');
+
+      const dark = await loadStore({ application_theme: 'dark' });
+      assert.equal(dark.resolvedEditorTheme, 'twilight');
    });
 
-   test('auto maps the resolved dark theme to twilight and light to sqlserver', async () => {
+   test('a choice made on a dark application theme leaves the light one alone', async () => {
+      const store = await loadStore({ application_theme: 'dark' });
+      store.changeEditorTheme('catppuccin_mocha');
+
+      assert.equal(store.resolvedEditorTheme, 'catppuccin_mocha');
+      assert.equal(settings.get('editor_theme_dark'), 'catppuccin_mocha');
+
+      store.applicationTheme = 'light';
+      assert.equal(store.resolvedEditorTheme, 'sqlserver', 'the dark choice must not follow into the light theme');
+   });
+
+   test('a choice made on a light application theme leaves the dark one alone', async () => {
+      const store = await loadStore({ application_theme: 'light' });
+      store.changeEditorTheme('dracula');
+
+      assert.equal(store.resolvedEditorTheme, 'dracula');
+      assert.equal(settings.get('editor_theme_light'), 'dracula');
+
+      store.applicationTheme = 'dark';
+      assert.equal(store.resolvedEditorTheme, 'twilight', 'the light choice must not follow into the dark theme');
+   });
+
+   test('going back to system picks the choice that belongs to the current colour scheme', async () => {
+      const store = await loadStore({ editor_theme_light: 'dracula', editor_theme_dark: 'catppuccin_mocha' });
+
+      store.applicationTheme = 'system';
+      assert.equal(store.resolvedEditorTheme, 'dracula');
+
       setSystemPrefersDark(true);
-      const store = await loadStore({ editor_theme: 'auto', application_theme: 'system' });
-      assert.equal(store.resolvedEditorTheme, 'twilight');
+      assert.equal(store.resolvedEditorTheme, 'catppuccin_mocha');
 
       setSystemPrefersDark(false);
-      assert.equal(store.resolvedEditorTheme, 'sqlserver');
+      assert.equal(store.resolvedEditorTheme, 'dracula');
    });
 
-   test('auto follows a system theme flipping mid-session, in both directions', async () => {
-      const store = await loadStore({ editor_theme: 'auto', application_theme: 'system' });
-      assert.equal(store.resolvedEditorTheme, 'sqlserver');
+   test('an explicit application theme ignores the system colour scheme', async () => {
+      const store = await loadStore({ application_theme: 'dark', editor_theme_light: 'dracula', editor_theme_dark: 'catppuccin_mocha' });
+      assert.equal(store.resolvedEditorTheme, 'catppuccin_mocha', 'a light system must not lighten a dark app');
 
       setSystemPrefersDark(true);
-      assert.equal(store.resolvedEditorTheme, 'twilight');
-
-      setSystemPrefersDark(false);
-      assert.equal(store.resolvedEditorTheme, 'sqlserver');
+      assert.equal(store.resolvedEditorTheme, 'catppuccin_mocha');
    });
 
-   test('auto follows an explicit application theme, not the system one', async () => {
-      const store = await loadStore({ editor_theme: 'auto', application_theme: 'dark' });
-      assert.equal(store.resolvedEditorTheme, 'twilight', 'a light system must not lighten a dark app');
-
-      setSystemPrefersDark(true);
-      assert.equal(store.resolvedEditorTheme, 'twilight');
-   });
-
-   test('an explicitly chosen theme ignores the application theme and the system', async () => {
+   test('a theme stored by an older version is kept on both colour schemes', async () => {
       const store = await loadStore({ editor_theme: 'monokai', application_theme: 'system' });
       assert.equal(store.resolvedEditorTheme, 'monokai');
 
@@ -89,21 +107,24 @@ describe('editor theme resolution', () => {
       assert.equal(store.resolvedEditorTheme, 'monokai');
    });
 
-   test('an existing light choice survives a dark application theme', async () => {
-      const store = await loadStore({ editor_theme: 'sqlserver', application_theme: 'dark' });
+   test('the retired auto sentinel falls back to the per-scheme defaults', async () => {
+      const store = await loadStore({ editor_theme: 'auto', application_theme: 'system' });
       assert.equal(store.resolvedEditorTheme, 'sqlserver');
+
+      setSystemPrefersDark(true);
+      assert.equal(store.resolvedEditorTheme, 'twilight');
+   });
+
+   test('a per-scheme choice wins over the theme stored by an older version', async () => {
+      const store = await loadStore({ editor_theme: 'monokai', editor_theme_dark: 'catppuccin_mocha', application_theme: 'dark' });
+      assert.equal(store.resolvedEditorTheme, 'catppuccin_mocha');
+
+      store.applicationTheme = 'light';
+      assert.equal(store.resolvedEditorTheme, 'monokai');
    });
 
    test('an unknown stored theme name is passed through untouched', async () => {
-      const store = await loadStore({ editor_theme: 'not-a-real-theme', application_theme: 'system' });
+      const store = await loadStore({ editor_theme_light: 'not-a-real-theme' });
       assert.equal(store.resolvedEditorTheme, 'not-a-real-theme');
-   });
-
-   test('choosing auto is persisted like any other theme', async () => {
-      const store = await loadStore({ editor_theme: 'monokai' });
-      store.changeEditorTheme('auto');
-
-      assert.equal(store.editorTheme, 'auto');
-      assert.equal(settings.get('editor_theme'), 'auto');
    });
 });
