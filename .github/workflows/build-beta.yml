@@ -38,4 +38,5 @@ jobs:
           artifacts: "build/*.AppImage,build/*.yml,build/*.deb,build/*.dmg,build/*.blockmap,build/*.zip,build/*.exe"
           allowUpdates: true
           draft: true
+          prerelease: true
           generateReleaseNotes: true
