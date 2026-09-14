@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.8.0-beta.1](https://github.com/DawidWetzler/antares/compare/v0.8.0-beta.0...v0.8.0-beta.1) (2026-09-14)
+
+
+### Features
+
+* **themes:** give the light and dark application theme their own editor theme ([41259a8](https://github.com/DawidWetzler/antares/commit/41259a85ab5494f23ea2eedcc0876bcbff983852))
+
 ## [0.8.0-beta.0](https://github.com/DawidWetzler/antares/compare/v0.7.35...v0.8.0-beta.0) (2026-09-14)
 
 
